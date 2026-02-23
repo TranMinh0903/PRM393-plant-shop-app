@@ -1,26 +1,35 @@
 import 'package:flutter/material.dart';
 
-/// App color constants
+/// App color constants - matching the Plant Shop design
 class AppColors {
   AppColors._();
 
-  // Primary - Green theme for plant shop
-  static const Color primary = Color(0xFF2E7D32);
+  // Primary - Vibrant green
+  static const Color primary = Color(0xFF13EC13);
   static const Color primaryLight = Color(0xFF60AD5E);
   static const Color primaryDark = Color(0xFF005005);
 
-  // Secondary
-  static const Color secondary = Color(0xFF8D6E63);
-  static const Color secondaryLight = Color(0xFFBE9C91);
-  static const Color secondaryDark = Color(0xFF5F4339);
+  // Sage palette
+  static const Color sage100 = Color(0xFFE8F3E8);
+  static const Color sage200 = Color(0xFFCCE4CC);
+  static const Color sage300 = Color(0xFFB0D4B0);
+  static const Color sage400 = Color(0xFF8AB88A);
+  static const Color sage500 = Color(0xFF618961);
+  static const Color sage700 = Color(0xFF3D5C3D);
+  static const Color sage800 = Color(0xFF2D402D);
+
+  // Earth palette
+  static const Color earth100 = Color(0xFFFDF8F4);
+  static const Color earth800 = Color(0xFF4A3B32);
 
   // Background
-  static const Color background = Color(0xFFF5F5F5);
+  static const Color backgroundLight = Color(0xFFF6F8F6);
+  static const Color backgroundDark = Color(0xFF102210);
   static const Color surface = Color(0xFFFFFFFF);
-  static const Color scaffoldBackground = Color(0xFFFAFAFA);
+  static const Color scaffoldBackground = Color(0xFFF6F8F6);
 
   // Text
-  static const Color textPrimary = Color(0xFF212121);
+  static const Color textPrimary = Color(0xFF0F172A); // slate-900
   static const Color textSecondary = Color(0xFF757575);
   static const Color textHint = Color(0xFFBDBDBD);
 
@@ -37,6 +46,22 @@ class AppStrings {
 
   static const String appName = 'Plant Shop';
   static const String appTagline = 'Cây cảnh đẹp, giao tận nơi';
+
+  // Home
+  static const String goodMorning = 'Good Morning 🌿';
+  static const String findYourPlant = 'Find your plant';
+  static const String searchHint = 'Search plants, pots...';
+  static const String popularPlants = 'Popular Plants';
+  static const String seeAll = 'See all';
+  static const String newArrival = 'New Arrival';
+  static const String shopNow = 'Shop Now';
+
+  // Categories
+  static const String all = 'All';
+  static const String indoor = 'Indoor';
+  static const String outdoor = 'Outdoor';
+  static const String office = 'Office';
+  static const String garden = 'Garden';
 
   // Auth
   static const String login = 'Đăng nhập';
@@ -64,10 +89,11 @@ class AppStrings {
   static const String orders = 'Đơn hàng';
   static const String orderDetail = 'Chi tiết đơn hàng';
 
-  // Categories
-  static const String indoor = 'Cây trong nhà';
-  static const String outdoor = 'Cây ngoài trời';
-  static const String office = 'Cây văn phòng';
+  // Nav
+  static const String home = 'Home';
+  static const String saved = 'Saved';
+  static const String ordersNav = 'Orders';
+  static const String profile = 'Profile';
 }
 
 /// App dimension constants
@@ -84,8 +110,16 @@ class AppDimens {
   static const double radiusM = 12.0;
   static const double radiusL = 16.0;
   static const double radiusXL = 24.0;
+  static const double radiusFull = 9999.0;
 
   static const double iconS = 20.0;
   static const double iconM = 24.0;
   static const double iconL = 32.0;
+
+  // Home specific
+  static const double searchBarHeight = 56.0;
+  static const double bannerHeight = 160.0;
+  static const double categoryChipHeight = 40.0;
+  static const double bottomNavHeight = 80.0;
+  static const double cartFabSize = 56.0;
 }
