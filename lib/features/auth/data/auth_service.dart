@@ -18,7 +18,7 @@ class AuthService {
 
       final body = jsonDecode(response.body);
 
-      if (response.statusCode == 200 && body['isSuccess'] == true) {
+      if (response.statusCode >= 200 && response.statusCode < 300 && body['isSuccess'] == true) {
         // Lưu JWT token
         final token = body['data']['token'];
         AuthStorage.saveToken(token);
@@ -50,7 +50,7 @@ class AuthService {
 
       final body = jsonDecode(response.body);
 
-      if (response.statusCode == 200 && body['isSuccess'] == true) {
+      if (response.statusCode >= 200 && response.statusCode < 300 && body['isSuccess'] == true) {
         return {'success': true, 'message': 'Đăng ký thành công!'};
       } else {
         return {
