@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/data/auth_service.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/product/presentation/pages/product_detail_page.dart';
 import '../../shared/widgets/main_shell.dart';
+import '../network/auth_storage.dart';
 
 /// App route configuration
 class AppRoutes {
@@ -220,9 +222,9 @@ class _ProfilePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Plant Lover',
-                style: TextStyle(
+              Text(
+                AuthStorage.username ?? 'Plant Lover',
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF0F172A),
@@ -230,7 +232,7 @@ class _ProfilePage extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               const Text(
-                'user@example.com',
+                'TreeShop Member',
                 style: TextStyle(
                   fontSize: 14,
                   color: Color(0xFF557A55),
@@ -251,7 +253,7 @@ class _ProfilePage extends StatelessWidget {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    // TODO: Firebase Auth sign out
+                    AuthService.logout();
                     context.go('/login');
                   },
                   icon: const Icon(Icons.logout, color: Color(0xFFDC2626)),

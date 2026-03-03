@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../shared/models/product_model.dart';
+import '../../../product/data/product_service.dart';
 
 /// Product Detail Page - shows full plant info with hero image,
 /// care stats, description, and add-to-cart bottom bar
@@ -16,25 +18,77 @@ class ProductDetailPage extends StatefulWidget {
 class _ProductDetailPageState extends State<ProductDetailPage> {
   int _quantity = 1;
   bool _isFavorite = false;
-  bool _isDescriptionExpanded = false;
+  bool _isLoading = true;
 
-  // TODO: Replace with real data from BLoC/repository
-  final Map<String, dynamic> _product = {
-    'name': 'Fiddle Leaf Fig',
-    'scientificName': 'Ficus lyrata',
-    'price': 45.00,
-    'rating': 4.8,
-    'image':
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuDRgK_fIBMNXt0eUOTItxnJQGo3Lw55z36pcP0Zzwo5vsw77vVCwTPPbdWyA6ekcgn48QQmhA5su_tMsjm2C-jqd5XTWNX65fspQX0_DJC80u8BIEjgCFfRfVJbddifGb6rj7Cg99bJDFpYYWtD57vt7c2AdtFx0tt-6GN91tOaip4yvTN9wnQaT1YGfSZqNRzCsibznKzfFVo7_lq8VkB9Le8cM0aV6qJcHe2ImdQ9WZ0bZKMnkTDwqjP-yDKteyxZmH9uqRkxJHcc',
-    'description':
-        'The Fiddle Leaf Fig is a popular indoor tree featuring very large, heavily veined, and violin-shaped leaves that grow upright. It brings a dramatic structural element to any bright room.',
-    'water': 'Every 7 days',
-    'light': 'Bright indirect',
-    'temp': '18°C - 24°C',
-  };
+  ProductModel? _product;
+
+  // Ảnh minh họa vì API chưa có trường image
+  final String _defaultImage =
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuDRgK_fIBMNXt0eUOTItxnJQGo3Lw55z36pcP0Zzwo5vsw77vVCwTPPbdWyA6ekcgn48QQmhA5su_tMsjm2C-jqd5XTWNX65fspQX0_DJC80u8BIEjgCFfRfVJbddifGb6rj7Cg99bJDFpYYWtD57vt7c2AdtFx0tt-6GN91tOaip4yvTN9wnQaT1YGfSZqNRzCsibznKzfFVo7_lq8VkB9Le8cM0aV6qJcHe2ImdQ9WZ0bZKMnkTDwqjP-yDKteyxZmH9uqRkxJHcc';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProduct();
+  }
+
+  /// Load product detail từ BE Tree API
+  Future<void> _loadProduct() async {
+    final id = int.tryParse(widget.productId);
+    if (id == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    final product = await ProductService.getProductById(id);
+    setState(() {
+      _product = product;
+      _isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFF6F8F6),
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+
+    if (_product == null) {
+      return Scaffold(
+        backgroundColor: AppColors.backgroundLight,
+        body: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline,
+                    size: 64, color: AppColors.sage400),
+                const SizedBox(height: 16),
+                const Text(
+                  'Không tìm thấy sản phẩm',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Quay lại'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       body: Stack(
@@ -58,8 +112,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       _buildTitlePriceSection(),
                       const SizedBox(height: 24),
 
-                      // Care Stats
-                      _buildCareStats(),
+                      // Info Cards
+                      _buildInfoCards(),
                       const SizedBox(height: 28),
 
                       // Description
@@ -100,10 +154,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         children: [
           // Plant image
           Image.network(
-            _product['image'],
+            _defaultImage,
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => const Center(
-              child: Icon(Icons.local_florist, size: 80, color: AppColors.sage400),
+              child:
+                  Icon(Icons.local_florist, size: 80, color: AppColors.sage400),
             ),
           ),
 
@@ -140,9 +195,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   onTap: () => Navigator.of(context).pop(),
                 ),
                 _buildCircleButton(
-                  icon: _isFavorite ? Icons.favorite : Icons.favorite_border,
+                  icon:
+                      _isFavorite ? Icons.favorite : Icons.favorite_border,
                   iconColor: _isFavorite ? Colors.red : Colors.white,
-                  onTap: () => setState(() => _isFavorite = !_isFavorite),
+                  onTap: () =>
+                      setState(() => _isFavorite = !_isFavorite),
                 ),
               ],
             ),
@@ -173,18 +230,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 
-  /// Title, scientific name, price, and rating
+  /// Title, category, price
   Widget _buildTitlePriceSection() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Name + scientific name
+        // Name + category
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _product['name'],
+                _product!.productName,
                 style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
@@ -194,7 +251,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                _product['scientificName'],
+                _product!.categoryName,
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
@@ -206,12 +263,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           ),
         ),
 
-        // Price + Rating
+        // Price
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              '\$${_product['price'].toStringAsFixed(2)}',
+              '\$${_product!.price.toStringAsFixed(2)}',
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
@@ -219,60 +276,64 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               ),
             ),
             const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.star, size: 16, color: Color(0xFFEAB308)),
-                const SizedBox(width: 3),
-                Text(
-                  '${_product['rating']}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.sage500,
+            if (_product!.stockQuantity != null)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.inventory_2_outlined,
+                      size: 14, color: AppColors.sage500),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Còn ${_product!.stockQuantity}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.sage500,
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
           ],
         ),
       ],
     );
   }
 
-  /// 3-column care stats (Water, Light, Temp)
-  Widget _buildCareStats() {
+  /// Info cards: Category, Stock, Created
+  Widget _buildInfoCards() {
     return Row(
       children: [
         Expanded(
-          child: _buildCareCard(
-            icon: Icons.water_drop_outlined,
-            label: 'Water',
-            value: _product['water'],
+          child: _buildInfoCard(
+            icon: Icons.category_outlined,
+            label: 'Category',
+            value: _product!.categoryName,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _buildCareCard(
-            icon: Icons.wb_sunny_outlined,
-            label: 'Light',
-            value: _product['light'],
+          child: _buildInfoCard(
+            icon: Icons.inventory_outlined,
+            label: 'Stock',
+            value: '${_product!.stockQuantity ?? 0} items',
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _buildCareCard(
-            icon: Icons.thermostat_outlined,
-            label: 'Temp',
-            value: _product['temp'],
+          child: _buildInfoCard(
+            icon: Icons.calendar_today_outlined,
+            label: 'Added',
+            value: _product!.createdAt != null
+                ? '${_product!.createdAt!.day}/${_product!.createdAt!.month}/${_product!.createdAt!.year}'
+                : 'N/A',
           ),
         ),
       ],
     );
   }
 
-  /// Single care stat card
-  Widget _buildCareCard({
+  /// Single info card
+  Widget _buildInfoCard({
     required IconData icon,
     required String label,
     required String value,
@@ -289,8 +350,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF4F7F4),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF4F7F4),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, size: 22, color: AppColors.sage500),
@@ -319,15 +380,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 
-  /// Description section with "Read more" toggle
+  /// Description section
   Widget _buildDescriptionSection() {
-    final description = _product['description'] as String;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Description',
+          'Product Details',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -335,32 +394,49 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           ),
         ),
         const SizedBox(height: 12),
-        Text(
-          description,
-          maxLines: _isDescriptionExpanded ? null : 3,
-          overflow:
-              _isDescriptionExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontSize: 14,
-            color: AppColors.sage500,
-            height: 1.6,
-          ),
-        ),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () {
-            setState(() => _isDescriptionExpanded = !_isDescriptionExpanded);
-          },
-          child: Text(
-            _isDescriptionExpanded ? 'Show less' : 'Read more',
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primary,
-            ),
-          ),
+        _buildDetailRow('Tên sản phẩm', _product!.productName),
+        _buildDetailRow('Danh mục', _product!.categoryName),
+        _buildDetailRow('Giá', '\$${_product!.price.toStringAsFixed(2)}'),
+        _buildDetailRow('Tồn kho', '${_product!.stockQuantity ?? 0}'),
+        _buildDetailRow(
+          'Ngày tạo',
+          _product!.createdAt != null
+              ? '${_product!.createdAt!.day}/${_product!.createdAt!.month}/${_product!.createdAt!.year}'
+              : 'N/A',
         ),
       ],
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.sage500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -373,7 +449,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           topLeft: Radius.circular(28),
           topRight: Radius.circular(28),
         ),
-        border: Border(
+        border: const Border(
           top: BorderSide(color: AppColors.sage100, width: 1),
         ),
         boxShadow: const [
@@ -399,7 +475,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               borderRadius: BorderRadius.circular(AppDimens.radiusFull),
               border: Border.all(color: AppColors.sage100),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -457,11 +534,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                        '${_product['name']} x$_quantity added to cart!'),
+                        '${_product!.productName} x$_quantity added to cart!'),
                     behavior: SnackBarBehavior.floating,
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimens.radiusM),
+                      borderRadius:
+                          BorderRadius.circular(AppDimens.radiusM),
                     ),
                   ),
                 );
@@ -470,7 +548,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 decoration: BoxDecoration(
                   color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(AppDimens.radiusFull),
+                  borderRadius:
+                      BorderRadius.circular(AppDimens.radiusFull),
                   boxShadow: const [
                     BoxShadow(
                       color: Color(0x4D13EC13),

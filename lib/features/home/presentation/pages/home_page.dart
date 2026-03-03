@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../shared/models/product_model.dart';
+import '../../../../shared/models/category_model.dart';
 import '../../../../shared/widgets/plant_card.dart';
 import '../../../../shared/widgets/category_chip.dart';
 import '../../../../shared/widgets/search_bar_widget.dart';
 import '../../../../shared/widgets/promo_banner.dart';
+import '../../../../core/network/auth_storage.dart';
+import '../../../product/data/product_service.dart';
+import '../../data/category_service.dart';
 
 /// Home page - main screen of the plant shop app
 class HomePage extends StatefulWidget {
@@ -17,55 +22,63 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedCategoryIndex = 0;
+  bool _isLoading = true;
 
-  final List<String> _categories = [
-    AppStrings.all,
-    AppStrings.indoor,
-    AppStrings.outdoor,
-    AppStrings.office,
-    AppStrings.garden,
-  ];
+  List<ProductModel> _products = [];
+  List<CategoryModel> _apiCategories = [];
+  List<String> _categoryNames = [AppStrings.all];
 
-  // Sample data matching the design
-  final List<Map<String, dynamic>> _plants = [
-    {
-      'name': 'Snake Plant',
-      'subtitle': 'Sansevieria',
-      'price': 25.0,
-      'image':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuBO5gVKfk_EARRddUC-mT6bfXTogBpEGs1JXuJZve9kDIBD9tgJYYTPVeeZgqh1W3KEFLQxVfZbAIldaZX7RWd4NISNavDzPYol2vlSwOc57uP5ci2rHUA9JVByHAUVkN1kB2uzM-U-yYYP3gQUge9c4W3iX56orjj7GlZKtHkWJlx0YbyhJ45uhA_ULDIpifb-kEAdukCplD8ME9xyXpno2v5avTD-xKJrfNud9OZpNjaRgNxWOeBVFE_gjZwOjhgMatjdg0XYwe4L',
-      'isFavorite': false,
-    },
-    {
-      'name': 'Aloe Vera',
-      'subtitle': 'Medicinal',
-      'price': 12.0,
-      'image':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuCQ7v2MXryRMintEKHNasoTjSk7uBJaIzd3qab7LfB11N-cehkCPS9VXm_CVw61aez9ght-skWXwwrCn3ez4u62FzUGH1YhGxTYxQNy0OWq3Jybi-Y8E0ReE0MFFDRAoClPdgIJNhtGD1b275x8eXKeyQF-v465eravTv8YcIDFTv20P1AqQyLOMSw7uJp1T8SgospybAbl2wh0oWbxNfflFvZNBVCaQUt9SrJR2o_VGJqlPQ2pG58hy5J3H4RmyJCi9Y6iJ581l3ak',
-      'isFavorite': true,
-    },
-    {
-      'name': 'Rubber Plant',
-      'subtitle': 'Ficus Elastica',
-      'price': 35.0,
-      'image':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuBwhBVLXbbuhXkDsushY0au_2T2xFlXGcwQ15oQgz0_npCLuzNDu8Ms5VrliDG4rG1zGpOa7v75e5XzaekszmlP-NtixtnXghB8dN2bO4LJFvWfYlOBh4XlauNiUVeMy4G3BNb-1-Gly35zWP44yZlawSbpPvYNG5Fqea38JzPNt74RHVpP0ESEbv10Vet4wbX2yOBxBOQDu3snIDxpl672FiqnI1hq2H2PhOJciihwtP3VxTmd6MrB9ClLTg4JWQ34MbZO6FWjAV5y',
-      'isFavorite': false,
-    },
-    {
-      'name': 'Peace Lily',
-      'subtitle': 'Spathiphyllum',
-      'price': 18.0,
-      'originalPrice': 24.0,
-      'image':
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuAukzQxTumhhcbQTgUj5ydrgeknzIo088LNT3kwpfkaxroqFqgQJJpw-iG3WOEdkdT9lKrJEELvNiTeJAqxLDPvY3OIiaAXRlhH0_U8ruAbQBgjvwOVy-9DCyT37PdPNjhKJpIk5Tl7m_pb7UsU-DYVYqWZbDPk_NhZukOCv1CuuQIOoAumxcEhREk8HpdpEvcF3wleu0wbZQPJWqGw42T8yXPBU4yo_ZRsGy1GhQ1s0kYgIjZ-SsJz_3BPiblSTrB-LviLB45u7tVS',
-      'isFavorite': false,
-      'hasSale': true,
-    },
+  // Danh sách ảnh minh họa cho sản phẩm (vì API chưa có trường image)
+  final List<String> _plantImages = [
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuBO5gVKfk_EARRddUC-mT6bfXTogBpEGs1JXuJZve9kDIBD9tgJYYTPVeeZgqh1W3KEFLQxVfZbAIldaZX7RWd4NISNavDzPYol2vlSwOc57uP5ci2rHUA9JVByHAUVkN1kB2uzM-U-yYYP3gQUge9c4W3iX56orjj7GlZKtHkWJlx0YbyhJ45uhA_ULDIpifb-kEAdukCplD8ME9xyXpno2v5avTD-xKJrfNud9OZpNjaRgNxWOeBVFE_gjZwOjhgMatjdg0XYwe4L',
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuCQ7v2MXryRMintEKHNasoTjSk7uBJaIzd3qab7LfB11N-cehkCPS9VXm_CVw61aez9ght-skWXwwrCn3ez4u62FzUGH1YhGxTYxQNy0OWq3Jybi-Y8E0ReE0MFFDRAoClPdgIJNhtGD1b275x8eXKeyQF-v465eravTv8YcIDFTv20P1AqQyLOMSw7uJp1T8SgospybAbl2wh0oWbxNfflFvZNBVCaQUt9SrJR2o_VGJqlPQ2pG58hy5J3H4RmyJCi9Y6iJ581l3ak',
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuBwhBVLXbbuhXkDsushY0au_2T2xFlXGcwQ15oQgz0_npCLuzNDu8Ms5VrliDG4rG1zGpOa7v75e5XzaekszmlP-NtixtnXghB8dN2bO4LJFvWfYlOBh4XlauNiUVeMy4G3BNb-1-Gly35zWP44yZlawSbpPvYNG5Fqea38JzPNt74RHVpP0ESEbv10Vet4wbX2yOBxBOQDu3snIDxpl672FiqnI1hq2H2PhOJciihwtP3VxTmd6MrB9ClLTg4JWQ34MbZO6FWjAV5y',
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuAukzQxTumhhcbQTgUj5ydrgeknzIo088LNT3kwpfkaxroqFqgQJJpw-iG3WOEdkdT9lKrJEELvNiTeJAqxLDPvY3OIiaAXRlhH0_U8ruAbQBgjvwOVy-9DCyT37PdPNjhKJpIk5Tl7m_pb7UsU-DYVYqWZbDPk_NhZukOCv1CuuQIOoAumxcEhREk8HpdpEvcF3wleu0wbZQPJWqGw42T8yXPBU4yo_ZRsGy1GhQ1s0kYgIjZ-SsJz_3BPiblSTrB-LviLB45u7tVS',
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  /// Load products và categories từ BE Tree API
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+
+    // Load đồng thời products và categories
+    final results = await Future.wait([
+      ProductService.getProducts(pageSize: 20),
+      CategoryService.getCategories(),
+    ]);
+
+    final products = results[0] as List<ProductModel>;
+    final categories = results[1] as List<CategoryModel>;
+
+    setState(() {
+      _products = products;
+      _apiCategories = categories;
+      _categoryNames = [
+        AppStrings.all,
+        ...categories.map((c) => c.categoryName),
+      ];
+      _isLoading = false;
+    });
+  }
+
+  /// Filter products theo category đã chọn
+  List<ProductModel> get _filteredProducts {
+    if (_selectedCategoryIndex == 0) return _products; // "All"
+    final selectedCategoryName = _categoryNames[_selectedCategoryIndex];
+    return _products
+        .where((p) => p.categoryName == selectedCategoryName)
+        .toList();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final username = AuthStorage.username ?? 'Plant Lover';
+
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
@@ -83,7 +96,7 @@ class _HomePageState extends State<HomePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          AppStrings.goodMorning,
+                          'Hello, $username 🌿',
                           style: TextStyle(
                             color: AppColors.sage500,
                             fontSize: 14,
@@ -159,7 +172,9 @@ class _HomePageState extends State<HomePage> {
                   imageUrl:
                       'https://lh3.googleusercontent.com/aida-public/AB6AXuA0dIuEygoC1E2px02yXUBCSVXhzNqrd7UFeVFENTvDEAub2nQeKvbc5CJ0JSv0X7ntm1NtmaUBdDVn-qfSCql_HTKqZ2YhbBhl6R9PIi4tHNqjLdP_8s-rYLowGp620xOKS2_OZeEBhPDcLjacQV8SVQFpfy1-HnDwd6j7AbVGdtt6taKiRTMsX_mBnpleurQjscoz6SFnvEjmHo5czFwOiS6qmlbVCaUvoKLJ2hb6EMMN5mpqiBt7J3ckkv800Tw490XAnmqHUOsF',
                   onTap: () {
-                    context.push('/product/monstera');
+                    if (_products.isNotEmpty) {
+                      context.push('/product/${_products.first.id}');
+                    }
                   },
                 ),
               ),
@@ -167,10 +182,10 @@ class _HomePageState extends State<HomePage> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-            // Categories
+            // Categories (từ API)
             SliverToBoxAdapter(
               child: CategoryChips(
-                categories: _categories,
+                categories: _categoryNames,
                 selectedIndex: _selectedCategoryIndex,
                 onSelected: (index) {
                   setState(() => _selectedCategoryIndex = index);
@@ -187,9 +202,11 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      AppStrings.popularPlants,
-                      style: TextStyle(
+                    Text(
+                      _isLoading
+                          ? AppStrings.popularPlants
+                          : '${AppStrings.popularPlants} (${_filteredProducts.length})',
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
@@ -215,55 +232,94 @@ class _HomePageState extends State<HomePage> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-            // Product Grid (2 columns)
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 20,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 0.58,
+            // Loading indicator or Product Grid
+            if (_isLoading)
+              const SliverToBoxAdapter(
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(40),
+                    child: CircularProgressIndicator(
+                      color: AppColors.primary,
+                    ),
+                  ),
                 ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final plant = _plants[index];
-                    return PlantCard(
-                      name: plant['name'],
-                      subtitle: plant['subtitle'],
-                      imageUrl: plant['image'],
-                      price: plant['price'],
-                      originalPrice: plant['originalPrice']?.toDouble(),
-                      isFavorite: plant['isFavorite'] ?? false,
-                      hasSaleBadge: plant['hasSale'] ?? false,
-                      onTap: () {
-                        context.push('/product/$index');
-                      },
-                      onAddToCart: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('${plant['name']} added to cart!'),
-                            behavior: SnackBarBehavior.floating,
-                            backgroundColor: AppColors.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppDimens.radiusM),
-                            ),
+              )
+            else if (_filteredProducts.isEmpty)
+              SliverToBoxAdapter(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(40),
+                    child: Column(
+                      children: [
+                        Icon(Icons.local_florist_outlined,
+                            size: 64, color: AppColors.sage400),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Chưa có sản phẩm',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: AppColors.sage500,
                           ),
-                        );
-                      },
-                      onFavorite: () {
-                        setState(() {
-                          _plants[index]['isFavorite'] =
-                              !(plant['isFavorite'] ?? false);
-                        });
-                      },
-                    );
-                  },
-                  childCount: _plants.length,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Hãy thêm sản phẩm qua API hoặc Swagger UI',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.sage400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            else
+              // Product Grid (2 columns) - từ API
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 20,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 0.58,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final product = _filteredProducts[index];
+                      final imageUrl =
+                          _plantImages[index % _plantImages.length];
+                      return PlantCard(
+                        name: product.productName,
+                        subtitle: product.categoryName,
+                        imageUrl: imageUrl,
+                        price: product.price,
+                        isFavorite: false,
+                        onTap: () {
+                          context.push('/product/${product.id}');
+                        },
+                        onAddToCart: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  '${product.productName} added to cart!'),
+                              behavior: SnackBarBehavior.floating,
+                              backgroundColor: AppColors.primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppDimens.radiusM),
+                              ),
+                            ),
+                          );
+                        },
+                        onFavorite: () {},
+                      );
+                    },
+                    childCount: _filteredProducts.length,
+                  ),
                 ),
               ),
-            ),
 
             // Bottom spacing for nav bar
             const SliverToBoxAdapter(child: SizedBox(height: 100)),

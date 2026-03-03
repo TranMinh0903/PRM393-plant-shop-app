@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../data/auth_service.dart';
 
 /// Login & Register page with glassmorphism design
 class LoginPage extends StatefulWidget {
@@ -16,18 +17,19 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
   bool _isSignIn = true;
   bool _obscurePassword = true;
+  bool _isLoading = false;
   bool _obscureConfirmPassword = true;
 
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
-    _nameController.dispose();
+    _emailController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
@@ -284,25 +286,25 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       curve: Curves.easeInOut,
       child: Column(
         children: [
-          // Full Name (register only)
+          // Username
+          _buildInputField(
+            controller: _usernameController,
+            icon: Icons.person_outline,
+            placeholder: 'Username',
+            keyboardType: TextInputType.text,
+          ),
+          const SizedBox(height: 16),
+
+          // Email (register only)
           if (!_isSignIn) ...[
             _buildInputField(
-              controller: _nameController,
-              icon: Icons.person_outline,
-              placeholder: 'Full name',
-              keyboardType: TextInputType.name,
+              controller: _emailController,
+              icon: Icons.mail_outline,
+              placeholder: 'Email',
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 16),
           ],
-
-          // Email
-          _buildInputField(
-            controller: _emailController,
-            icon: Icons.mail_outline,
-            placeholder: 'Enter your email',
-            keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 16),
 
           // Password
           _buildInputField(
@@ -434,13 +436,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   /// Primary CTA button
   Widget _buildPrimaryButton() {
     return GestureDetector(
-      onTap: _handleSubmit,
+      onTap: _isLoading ? null : _handleSubmit,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
         margin: const EdgeInsets.only(top: 8),
         decoration: BoxDecoration(
-          color: AppColors.primary,
+          color: _isLoading ? AppColors.sage400 : AppColors.primary,
           borderRadius: BorderRadius.circular(AppDimens.radiusFull),
           boxShadow: const [
             BoxShadow(
@@ -450,15 +452,26 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
             ),
           ],
         ),
-        child: Text(
-          _isSignIn ? 'Explore the Jungle' : 'Create Account',
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
+        child: _isLoading
+            ? const Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
+              )
+            : Text(
+                _isSignIn ? 'Explore the Jungle' : 'Create Account',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
       ),
     );
   }
@@ -550,25 +563,64 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   }
 
   /// Handle form submission
-  void _handleSubmit() {
-    if (_isSignIn) {
-      // TODO: Firebase Auth sign in
-      // For now, navigate to home
-      context.go('/');
-    } else {
-      // TODO: Firebase Auth create account
-      // For now, switch to sign in
-      setState(() => _isSignIn = true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Account created! Please sign in.'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.primary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDimens.radiusM),
-          ),
-        ),
-      );
+  void _handleSubmit() async {
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (username.isEmpty || password.isEmpty) {
+      _showSnackBar('Vui lòng nhập đầy đủ thông tin', isError: true);
+      return;
     }
+
+    setState(() => _isLoading = true);
+
+    if (_isSignIn) {
+      // Login bằng BE Tree API
+      final result = await AuthService.login(username, password);
+      setState(() => _isLoading = false);
+
+      if (result['success'] == true) {
+        if (mounted) context.go('/');
+      } else {
+        _showSnackBar(result['message'] ?? 'Đăng nhập thất bại', isError: true);
+      }
+    } else {
+      // Register bằng BE Tree API
+      final email = _emailController.text.trim();
+      if (email.isEmpty) {
+        setState(() => _isLoading = false);
+        _showSnackBar('Vui lòng nhập email', isError: true);
+        return;
+      }
+      if (password != _confirmPasswordController.text.trim()) {
+        setState(() => _isLoading = false);
+        _showSnackBar('Mật khẩu xác nhận không khớp', isError: true);
+        return;
+      }
+
+      final result = await AuthService.register(username, password, email);
+      setState(() => _isLoading = false);
+
+      if (result['success'] == true) {
+        setState(() => _isSignIn = true);
+        _showSnackBar('Đăng ký thành công! Hãy đăng nhập.');
+      } else {
+        _showSnackBar(result['message'] ?? 'Đăng ký thất bại', isError: true);
+      }
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: isError ? AppColors.error : AppColors.primary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimens.radiusM),
+        ),
+      ),
+    );
   }
 }
