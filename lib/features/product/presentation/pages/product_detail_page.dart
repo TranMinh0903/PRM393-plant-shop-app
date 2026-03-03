@@ -154,7 +154,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         children: [
           // Plant image
           Image.network(
-            _defaultImage,
+            _product?.imageUrl ?? _defaultImage,
             fit: BoxFit.cover,
             errorBuilder: (_, __, ___) => const Center(
               child:

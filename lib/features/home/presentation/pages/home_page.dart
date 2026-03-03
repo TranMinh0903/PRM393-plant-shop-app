@@ -288,7 +288,7 @@ class _HomePageState extends State<HomePage> {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final product = _filteredProducts[index];
-                      final imageUrl =
+                      final imageUrl = product.imageUrl ??
                           _plantImages[index % _plantImages.length];
                       return PlantCard(
                         name: product.productName,

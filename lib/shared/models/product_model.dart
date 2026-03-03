@@ -7,6 +7,7 @@ class ProductModel {
   final DateTime? createdAt;
   final int categoryId;
   final String categoryName;
+  final String? imageUrl;
 
   ProductModel({
     required this.id,
@@ -16,6 +17,7 @@ class ProductModel {
     this.createdAt,
     required this.categoryId,
     required this.categoryName,
+    this.imageUrl,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class ProductModel {
           : null,
       categoryId: json['categoryId'] ?? 0,
       categoryName: json['categoryName'] ?? '',
+      imageUrl: json['imageUrl'],
     );
   }
 
@@ -38,6 +41,8 @@ class ProductModel {
       'price': price,
       'stockQuantity': stockQuantity,
       'categoryId': categoryId,
+      'imageUrl': imageUrl,
     };
   }
 }
+
