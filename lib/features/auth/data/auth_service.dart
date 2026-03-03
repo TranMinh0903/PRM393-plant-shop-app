@@ -23,17 +23,17 @@ class AuthService {
         final token = body['data']['token'];
         AuthStorage.saveToken(token);
         AuthStorage.saveUsername(username);
-        return {'success': true, 'message': 'Đăng nhập thành công!'};
+        return {'success': true, 'message': 'Login successful!'};
       } else {
         return {
           'success': false,
-          'message': body['message'] ?? 'Đăng nhập thất bại',
+          'message': body['message'] ?? 'Login failed',
         };
       }
     } catch (e) {
       return {
         'success': false,
-        'message': 'Không thể kết nối đến server. Kiểm tra API đang chạy.',
+        'message': 'Cannot connect to server. Please check if API is running.',
       };
     }
   }
@@ -51,17 +51,17 @@ class AuthService {
       final body = jsonDecode(response.body);
 
       if (response.statusCode >= 200 && response.statusCode < 300 && body['isSuccess'] == true) {
-        return {'success': true, 'message': 'Đăng ký thành công!'};
+        return {'success': true, 'message': 'Registration successful!'};
       } else {
         return {
           'success': false,
-          'message': body['message'] ?? 'Đăng ký thất bại',
+          'message': body['message'] ?? 'Registration failed',
         };
       }
     } catch (e) {
       return {
         'success': false,
-        'message': 'Không thể kết nối đến server.',
+        'message': 'Cannot connect to server.',
       };
     }
   }
