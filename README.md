@@ -1,7 +1,8 @@
-# 🌿 Ứng dụng Quản lý & Kinh doanh Cây cảnh (Plant Shop App)
+# Ứng dụng Quản lý & Kinh doanh Cây cảnh (Plant Shop App)
 
 
-## 📋 Mục lục
+
+## Mục lục
 
 1. [Yêu cầu hệ thống](#yêu-cầu-hệ-thống)
 2. [Clone dự án](#clone-dự-án)
@@ -14,7 +15,7 @@
 
 ---
 
-## 🔧 Yêu cầu hệ thống
+##  Yêu cầu hệ thống
 
 Trước khi bắt đầu, hãy đảm bảo bạn có:
 
@@ -24,7 +25,8 @@ Trước khi bắt đầu, hãy đảm bảo bạn có:
 - **Android Studio** hoặc **VS Code** + Flutter Extension
 - **Git:** Để clone repository
 - **Emulator/Device:** Android hoặc iOS device để chạy ứng dụng
-- **Backend Server:** Chạy ở `http://localhost:9090` (hoặc địa chỉ IP khác)
+- **Backend Server:** Chạy ở `http://localhost:9090` (hoặc địa chỉ IP khác),
+- [Backend GIT](https://github.com/TranMinh0903/TreeShop)
 
 ### Kiểm tra cài đặt Flutter
 
@@ -36,7 +38,7 @@ flutter doctor
 
 ---
 
-## 📥 Clone dự án
+##  Clone dự án
 
 ### Cách 1: Clone từ GitHub
 
@@ -123,7 +125,7 @@ class CloudinaryConfig {
 
 ---
 
-## 🚀 Chạy ứng dụng
+## Chạy ứng dụng
 
 ### Chạy trên Android Emulator
 
@@ -173,25 +175,25 @@ debugShowCheckedModeBanner: false,
 
 ---
 
-## 🔌 API Integration - Cách gọi API
+## API Integration - Cách gọi API
 
 Dự án sử dụng `ApiClient` - một wrapper cho `http` package để gọi API một cách dễ dàng.
 
-### 📍 Vị trí file API Client
+### Vị trí file API Client
 
 - **API Client:** `lib/core/network/api_client.dart`
 - **API Config:** `lib/core/config/api_config.dart`
 - **Auth Storage:** `lib/core/services/auth_storage.dart`
 
-### ✨ Tính năng của ApiClient
+### Tính năng của ApiClient
 
-- ✅ Tự động thêm JWT Token vào Headers (nếu có)
-- ✅ Hỗ trợ GET, POST, PUT, DELETE requests
-- ✅ Support query parameters cho GET requests
-- ✅ JSON encoding/decoding tự động
-- ✅ Base URL được cấu hình tập trung
+-  Tự động thêm JWT Token vào Headers (nếu có)
+-  Hỗ trợ GET, POST, PUT, DELETE requests
+-  Support query parameters cho GET requests
+-  JSON encoding/decoding tự động
+-  Base URL được cấu hình tập trung
 
-### 📝 Cách sử dụng ApiClient
+### Cách sử dụng ApiClient
 
 #### 1. **GET Request** - Lấy danh sách cây cảnh
 
@@ -275,7 +277,7 @@ if (response.statusCode == 200) {
 }
 ```
 
-### 🔐 Xác thực JWT Token
+### Xác thực JWT Token
 
 ApiClient **tự động thêm JWT Token** vào mọi request nếu token đã được lưu:
 
@@ -292,7 +294,7 @@ AuthStorage.token = null;
 
 **File liên quan:** `lib/core/services/auth_storage.dart`
 
-### 🏗️ Sử dụng ApiClient trong BLoC
+### Sử dụng ApiClient trong BLoC
 
 Dự án sử dụng **BLoC Pattern** để quản lý state. Dưới đây là cách tích hợp ApiClient trong BLoC:
 
@@ -391,7 +393,7 @@ final product = await apiCall<Product>(
 
 ---
 
-## 📁 Cấu trúc thư mục
+##  Cấu trúc thư mục
 
 ```
 lib/
@@ -399,17 +401,17 @@ lib/
 ├── app.dart                  # Root widget
 ├── core/                     # Core functionality
 │   ├── config/
-│   │   └── api_config.dart   # ⚙️ Cấu hình API & Cloudinary
+│   │   └── api_config.dart   # Cấu hình API & Cloudinary
 │   ├── constants/            # Constants & enums
 │   ├── network/
-│   │   ├── api_client.dart   # 🔌 HTTP client wrapper
-│   │   └── auth_storage.dart # 🔐 JWT Token storage
+│   │   ├── api_client.dart   # HTTP client wrapper
+│   │   └── auth_storage.dart # JWT Token storage
 │   ├── routes/
-│   │   └── app_routes.dart   # 🛣️ Navigation routes (go_router)
+│   │   └── app_routes.dart   # Navigation routes (go_router)
 │   ├── services/             # Business logic services
 │   ├── theme/
-│   │   └── app_theme.dart    # 🎨 Material theme
-│   └── dependency_injection/ # 📦 GetIt & Injectable setup
+│   │   └── app_theme.dart    # Material theme
+│   └── dependency_injection/ # GetIt & Injectable setup
 ├── features/                 # Feature modules (BLoC architecture)
 │   ├── auth/                 # Authentication feature
 │   │   ├── bloc/
@@ -430,8 +432,3 @@ lib/
     └── widgets/              # Reusable widgets
 ```
 
-
-
-
-
-**Chúc bạn phát triển ứng dụng thành công! 🚀**
