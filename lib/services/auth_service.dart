@@ -21,9 +21,11 @@ class AuthService {
       if (response.statusCode >= 200 && response.statusCode < 300 && body['isSuccess'] == true) {
         // Lưu JWT token
         final token = body['data']['token'];
+        final role = body['data']['role'] ?? 'User';
         AuthStorage.saveToken(token);
         AuthStorage.saveUsername(username);
-        return {'success': true, 'message': 'Login successful!'};
+        AuthStorage.saveRole(role);
+        return {'success': true, 'message': 'Login successful!', 'role': role};
       } else {
         return {
           'success': false,

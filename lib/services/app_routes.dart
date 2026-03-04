@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 import '../views/login_screen.dart';
 import '../views/product_screen.dart';
 import '../views/product_details_screen.dart';
+import '../views/admin_manage_screen.dart';
+import '../views/shipper_deliveries_screen.dart';
 import '../widgets/main_shell.dart';
 import 'auth_storage.dart';
 import 'auth_service.dart';
 
-/// App route configuration
+/// App route configuration with role-based navigation
 class AppRoutes {
   AppRoutes._();
 
@@ -29,6 +31,7 @@ class AppRoutes {
   static const String notifications = '/notifications';
 
   // Admin routes
+  static const String adminManage = '/admin/manage';
   static const String adminProducts = '/admin/products';
   static const String adminOrders = '/admin/orders';
 
@@ -41,6 +44,26 @@ class AppRoutes {
       GlobalKey<NavigatorState>(debugLabel: 'root');
   static final GlobalKey<NavigatorState> _shellNavigatorKey =
       GlobalKey<NavigatorState>(debugLabel: 'shell');
+
+  /// Get tab routes based on current role
+  static List<String> _getTabRoutes() {
+    final role = AuthStorage.role ?? 'User';
+    switch (role) {
+      case 'Admin':
+        return [home, orders, adminManage, profile];
+      case 'Shipper':
+        return [home, shipperDeliveries, profile];
+      default: // User
+        return [home, saved, cart, orders, profile];
+    }
+  }
+
+  /// Get current tab index from location
+  static int _getTabIndex(String location) {
+    final routes = _getTabRoutes();
+    final index = routes.indexOf(location);
+    return index >= 0 ? index : 0;
+  }
 
   static final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
@@ -61,56 +84,49 @@ class AppRoutes {
         },
       ),
 
-      // Main Shell with bottom navigation
+      // Main Shell with role-based bottom navigation
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
         builder: (context, state, child) {
-          // Determine current tab index based on route
-          int currentIndex = 0;
           final location = state.uri.toString();
-          if (location == home) {
-            currentIndex = 0;
-          } else if (location == saved) {
-            currentIndex = 1;
-          } else if (location == cart) {
-            currentIndex = 2;
-          } else if (location == orders) {
-            currentIndex = 3;
-          } else if (location == profile) {
-            currentIndex = 4;
-          }
+          final currentIndex = _getTabIndex(location);
+          final tabRoutes = _getTabRoutes();
 
           return MainShell(
             currentIndex: currentIndex,
             onTabChanged: (index) {
-              switch (index) {
-                case 0:
-                  context.go(home);
-                  break;
-                case 1:
-                  context.go(saved);
-                  break;
-                case 2:
-                  context.go(cart);
-                  break;
-                case 3:
-                  context.go(orders);
-                  break;
-                case 4:
-                  context.go(profile);
-                  break;
+              if (index < tabRoutes.length) {
+                context.go(tabRoutes[index]);
               }
             },
             child: child,
           );
         },
         routes: [
+          // ===== Shared routes (all roles) =====
           GoRoute(
             path: home,
             pageBuilder: (context, state) => const NoTransitionPage(
               child: ProductScreen(),
             ),
           ),
+          GoRoute(
+            path: orders,
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: _PlaceholderPage(
+                icon: Icons.receipt_long,
+                title: 'Orders',
+              ),
+            ),
+          ),
+          GoRoute(
+            path: profile,
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: _ProfilePage(),
+            ),
+          ),
+
+          // ===== User-only routes =====
           GoRoute(
             path: saved,
             pageBuilder: (context, state) => const NoTransitionPage(
@@ -129,19 +145,20 @@ class AppRoutes {
               ),
             ),
           ),
+
+          // ===== Admin-only routes =====
           GoRoute(
-            path: orders,
+            path: adminManage,
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: _PlaceholderPage(
-                icon: Icons.local_shipping,
-                title: 'My Orders',
-              ),
+              child: AdminManageScreen(),
             ),
           ),
+
+          // ===== Shipper-only routes =====
           GoRoute(
-            path: profile,
+            path: shipperDeliveries,
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: _ProfilePage(),
+              child: ShipperDeliveriesScreen(),
             ),
           ),
         ],
@@ -199,6 +216,13 @@ class _ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final role = AuthStorage.role ?? 'User';
+    final roleBadge = role == 'Admin'
+        ? '🛠️ Admin'
+        : role == 'Shipper'
+            ? '🚚 Shipper'
+            : '🌿 Member';
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8F6),
       body: SafeArea(
@@ -231,9 +255,9 @@ class _ProfilePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
-                'TreeShop Member',
-                style: TextStyle(
+              Text(
+                roleBadge,
+                style: const TextStyle(
                   fontSize: 14,
                   color: Color(0xFF557A55),
                 ),
