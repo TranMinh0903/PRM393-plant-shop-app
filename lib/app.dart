@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'core/theme/app_theme.dart';
-import 'core/routes/app_routes.dart';
+import 'services/app_theme.dart';
+import 'services/app_routes.dart';
 
 /// Root application widget
 class App extends StatelessWidget {
