@@ -1,19 +1,34 @@
-import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 
-import 'services/app_theme.dart';
 import 'services/app_routes.dart';
+import 'viewmodels/admin_product_viewmodel.dart';
 
-/// Root application widget
 class App extends StatelessWidget {
   const App({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Plant Shop',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      routerConfig: AppRoutes.router,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AdminProductViewModel()),
+      ],
+      child: ShadcnApp.router(
+        title: 'Trạm Cây cảnh',
+        debugShowCheckedModeBanner: false,
+        routerConfig: AppRoutes.router,
+        theme: ThemeData(colorScheme: ColorSchemes.lightSlate, radius: 0.5),
+        darkTheme: ThemeData(colorScheme: ColorSchemes.darkSlate, radius: 0.5),
+        themeMode: ThemeMode.light,
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('vi', 'VN')],
+        locale: const Locale('vi', 'VN'),
+      ),
     );
   }
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "973249498094",
+    "project_id": "tree-shop-v3-prm",
+    "storage_bucket": "tree-shop-v3-prm.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:973249498094:android:3037938090f99838591cff",
+        "android_client_info": {
+          "package_name": "com.treeshop.plant_shop_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-0mp5BRdG2qPZPasLG6LVTKn8SRnk9Do"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

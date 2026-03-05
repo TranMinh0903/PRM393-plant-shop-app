@@ -50,11 +50,11 @@ class AppRoutes {
     final role = AuthStorage.role ?? 'User';
     switch (role) {
       case 'Admin':
-        return [home, orders, adminManage, profile];
+        return [home, adminManage, profile];
       case 'Shipper':
         return [home, shipperDeliveries, profile];
       default: // User
-        return [home, saved, cart, orders, profile];
+        return [home, saved, cart, profile];
     }
   }
 
@@ -70,10 +70,7 @@ class AppRoutes {
     initialLocation: login,
     routes: [
       // Auth routes (outside shell)
-      GoRoute(
-        path: login,
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: login, builder: (context, state) => const LoginScreen()),
 
       // Product detail (outside shell - full screen, no bottom nav)
       GoRoute(
@@ -106,24 +103,13 @@ class AppRoutes {
           // ===== Shared routes (all roles) =====
           GoRoute(
             path: home,
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: ProductScreen(),
-            ),
-          ),
-          GoRoute(
-            path: orders,
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: _PlaceholderPage(
-                icon: Icons.receipt_long,
-                title: 'Orders',
-              ),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: ProductScreen()),
           ),
           GoRoute(
             path: profile,
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: _ProfilePage(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: _ProfilePage()),
           ),
 
           // ===== User-only routes =====
@@ -149,17 +135,15 @@ class AppRoutes {
           // ===== Admin-only routes =====
           GoRoute(
             path: adminManage,
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: AdminManageScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: AdminManageScreen()),
           ),
 
           // ===== Shipper-only routes =====
           GoRoute(
             path: shipperDeliveries,
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: ShipperDeliveriesScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: ShipperDeliveriesScreen()),
           ),
         ],
       ),
@@ -172,10 +156,7 @@ class _PlaceholderPage extends StatelessWidget {
   final IconData icon;
   final String title;
 
-  const _PlaceholderPage({
-    required this.icon,
-    required this.title,
-  });
+  const _PlaceholderPage({required this.icon, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -198,10 +179,7 @@ class _PlaceholderPage extends StatelessWidget {
             const SizedBox(height: 8),
             const Text(
               'Coming soon...',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF618961),
-              ),
+              style: TextStyle(fontSize: 14, color: Color(0xFF618961)),
             ),
           ],
         ),
@@ -220,8 +198,8 @@ class _ProfilePage extends StatelessWidget {
     final roleBadge = role == 'Admin'
         ? '🛠️ Admin'
         : role == 'Shipper'
-            ? '🚚 Shipper'
-            : '🌿 Member';
+        ? '🚚 Shipper'
+        : '🌿 Member';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8F6),
@@ -257,19 +235,11 @@ class _ProfilePage extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 roleBadge,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF557A55),
-                ),
+                style: const TextStyle(fontSize: 14, color: Color(0xFF557A55)),
               ),
               const SizedBox(height: 40),
 
               // Menu items
-              _buildMenuItem(Icons.person_outline, 'Edit Profile', () {}),
-              _buildMenuItem(Icons.location_on_outlined, 'My Addresses', () {}),
-              _buildMenuItem(Icons.notifications_outlined, 'Notifications', () {}),
-              _buildMenuItem(Icons.help_outline, 'Help & Support', () {}),
-
               const Spacer(),
 
               // Logout button
@@ -306,7 +276,11 @@ class _ProfilePage extends StatelessWidget {
     );
   }
 
-  static Widget _buildMenuItem(IconData icon, String title, VoidCallback onTap) {
+  static Widget _buildMenuItem(
+    IconData icon,
+    String title,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(

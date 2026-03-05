@@ -1,6 +1,6 @@
 name: plant_shop_app
 description: "Ứng dụng Quản lý & Kinh doanh Cây cảnh - PRM393 Group Project"
-publish_to: 'none'
+publish_to: "none"
 version: 1.0.0+1
 
 environment:
@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
+  flutter_localizations:
+    sdk: flutter
 
   # HTTP Client - kết nối BE Tree API
   http: ^1.2.0
@@ -18,6 +20,7 @@ dependencies:
   # State Management (BLoC)
   flutter_bloc: ^9.1.1
   equatable: ^2.0.7
+  provider: ^6.1.5+1
 
   # Navigation
   go_router: ^15.1.2
@@ -38,6 +41,9 @@ dependencies:
   # Utils
   intl: ^0.20.2
   url_launcher: ^6.3.1
+  firebase_core: ^4.5.0
+  shadcn_flutter: ^0.0.52
+  shadcn_ui: ^0.50.1
 
 dev_dependencies:
   flutter_test:

@@ -44,31 +44,29 @@ class AppColors {
 class AppStrings {
   AppStrings._();
 
-  static const String appName = 'Plant Shop';
-  static const String appTagline = 'Cây cảnh đẹp, giao tận nơi';
+  static const String appName = 'Trạm Cây cảnh';
+  static const String appTagline = 'Mang hơi thở thiên nhiên vào ngôi nhà bạn';
 
   // Home
-  static const String goodMorning = 'Good Morning 🌿';
-  static const String findYourPlant = 'Find your plant';
-  static const String searchHint = 'Search plants, pots...';
-  static const String popularPlants = 'Popular Plants';
-  static const String seeAll = 'See all';
-  static const String newArrival = 'New Arrival';
-  static const String shopNow = 'Shop Now';
+  static const String goodMorning = 'Chào buổi sáng 🌿';
+  static const String findYourPlant = 'Tìm cây cảnh của bạn';
+  static const String searchHint = 'Tìm cây, chậu...';
+  static const String popularPlants = 'Cây cảnh phổ biến';
+  static const String seeAll = 'Xem tất cả';
+  static const String newArrival = 'Hàng mới về';
+  static const String shopNow = 'Mua ngay';
 
   // Categories
-  static const String all = 'All';
-  static const String indoor = 'Indoor';
-  static const String outdoor = 'Outdoor';
-  static const String office = 'Office';
-  static const String garden = 'Garden';
+  static const String all = 'Tất cả';
+  static const String indoor = 'Trong nhà';
+  static const String outdoor = 'Ngoài trời';
+  static const String office = 'Văn phòng';
+  static const String garden = 'Sân vườn';
 
   // Auth
   static const String login = 'Đăng nhập';
-  static const String register = 'Đăng ký';
   static const String email = 'Email';
   static const String password = 'Mật khẩu';
-  static const String confirmPassword = 'Xác nhận mật khẩu';
   static const String forgotPassword = 'Quên mật khẩu?';
   static const String displayName = 'Tên hiển thị';
   static const String phone = 'Số điện thoại';
@@ -90,10 +88,10 @@ class AppStrings {
   static const String orderDetail = 'Chi tiết đơn hàng';
 
   // Nav
-  static const String home = 'Home';
-  static const String saved = 'Saved';
-  static const String ordersNav = 'Orders';
-  static const String profile = 'Profile';
+  static const String home = 'Trang chủ';
+  static const String saved = 'Đã lưu';
+  static const String ordersNav = 'Đơn hàng';
+  static const String profile = 'Cá nhân';
 }
 
 /// App dimension constants

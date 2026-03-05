@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as m;
+import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../models/product.dart';
@@ -7,33 +8,26 @@ import '../services/app_constants.dart';
 import '../services/auth_storage.dart';
 import '../repositories/product_repo.dart';
 import '../services/category_service.dart';
-import '../widgets/plant_card.dart';
-import '../widgets/category_chip.dart';
-import '../widgets/search_bar_widget.dart';
-import '../widgets/promo_banner.dart';
 
-/// Product screen - main screen hiển thị danh sách sản phẩm
-class ProductScreen extends StatefulWidget {
+class ProductScreen extends m.StatefulWidget {
   const ProductScreen({super.key});
 
   @override
-  State<ProductScreen> createState() => _ProductScreenState();
+  m.State<ProductScreen> createState() => _ProductScreenState();
 }
 
-class _ProductScreenState extends State<ProductScreen> {
+class _ProductScreenState extends m.State<ProductScreen> {
   int _selectedCategoryIndex = 0;
   bool _isLoading = true;
 
   List<Product> _products = [];
-  List<Category> _apiCategories = [];
   List<String> _categoryNames = [AppStrings.all];
 
-  // Danh sách ảnh minh họa cho sản phẩm (vì API chưa có trường image)
   final List<String> _plantImages = [
     'https://lh3.googleusercontent.com/aida-public/AB6AXuBO5gVKfk_EARRddUC-mT6bfXTogBpEGs1JXuJZve9kDIBD9tgJYYTPVeeZgqh1W3KEFLQxVfZbAIldaZX7RWd4NISNavDzPYol2vlSwOc57uP5ci2rHUA9JVByHAUVkN1kB2uzM-U-yYYP3gQUge9c4W3iX56orjj7GlZKtHkWJlx0YbyhJ45uhA_ULDIpifb-kEAdukCplD8ME9xyXpno2v5avTD-xKJrfNud9OZpNjaRgNxWOeBVFE_gjZwOjhgMatjdg0XYwe4L',
     'https://lh3.googleusercontent.com/aida-public/AB6AXuCQ7v2MXryRMintEKHNasoTjSk7uBJaIzd3qab7LfB11N-cehkCPS9VXm_CVw61aez9ght-skWXwwrCn3ez4u62FzUGH1YhGxTYxQNy0OWq3Jybi-Y8E0ReE0MFFDRAoClPdgIJNhtGD1b275x8eXKeyQF-v465eravTv8YcIDFTv20P1AqQyLOMSw7uJp1T8SgospybAbl2wh0oWbxNfflFvZNBVCaQUt9SrJR2o_VGJqlPQ2pG58hy5J3H4RmyJCi9Y6iJ581l3ak',
     'https://lh3.googleusercontent.com/aida-public/AB6AXuBwhBVLXbbuhXkDsushY0au_2T2xFlXGcwQ15oQgz0_npCLuzNDu8Ms5VrliDG4rG1zGpOa7v75e5XzaekszmlP-NtixtnXghB8dN2bO4LJFvWfYlOBh4XlauNiUVeMy4G3BNb-1-Gly35zWP44yZlawSbpPvYNG5Fqea38JzPNt74RHVpP0ESEbv10Vet4wbX2yOBxBOQDu3snIDxpl672FiqnI1hq2H2PhOJciihwtP3VxTmd6MrB9ClLTg4JWQ34MbZO6FWjAV5y',
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuAukzQxTumhhcbQTgUj5ydrgeknzIo088LNT3kwpfkaxroqFqgQJJpw-iG3WOEdkdT9lKrJEELvNiTeJAqxLDPvY3OIiaAXRlhH0_U8ruAbQBgjvwOVy-9DCyT37PdPNjhKJpIk5Tl7m_pb7UsU-DYVYqWZbDPk_NhZukOCv1CuuQIOoAumxcEhREk8HpdpEvcF3wleu0wbZQPJWqGw42T8yXPBU4yo_ZRsGy1GhQ1s0kYgIjZ-SsJz_3BPiblSTrB-LviLB45u7tVS',
+    'https://lh3.googleusercontent.com/aida-public/AB6AXuAukzQxTumhhcbQTgUj5ydrgeknzIo088LNT3kwpfaxroqFqgQJJpw-iG3WOEdkdT9lKrJEELvNiTeJAqxLDPvY3OIiaAXRlhH0_U8ruAbQBgjvwOVy-9DCyT37PdPNjhKJpIk5Tl7m_pb7UsU-DYVYqWZbDPk_NhZukOCv1CuuQIOoAumxcEhREk8HpdpEvcF3wleu0wbZQPJWqGw42T8yXPBU4yo_ZRsGy1GhQ1s0kYgIjZ-SsJz_3BPiblSTrB-LviLB45u7tVS',
   ];
 
   @override
@@ -42,11 +36,9 @@ class _ProductScreenState extends State<ProductScreen> {
     _loadData();
   }
 
-  /// Load products và categories từ BE Tree API
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
 
-    // Load đồng thời products và categories
     final results = await Future.wait([
       ProductRepo.getProducts(pageSize: 20),
       CategoryService.getCategories(),
@@ -55,20 +47,20 @@ class _ProductScreenState extends State<ProductScreen> {
     final products = results[0] as List<Product>;
     final categories = results[1] as List<Category>;
 
-    setState(() {
-      _products = products;
-      _apiCategories = categories;
-      _categoryNames = [
-        AppStrings.all,
-        ...categories.map((c) => c.categoryName),
-      ];
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _products = products;
+        _categoryNames = [
+          AppStrings.all,
+          ...categories.map((c) => c.categoryName),
+        ];
+        _isLoading = false;
+      });
+    }
   }
 
-  /// Filter products theo category đã chọn
   List<Product> get _filteredProducts {
-    if (_selectedCategoryIndex == 0) return _products; // "All"
+    if (_selectedCategoryIndex == 0) return _products;
     final selectedCategoryName = _categoryNames[_selectedCategoryIndex];
     return _products
         .where((p) => p.categoryName == selectedCategoryName)
@@ -76,153 +68,71 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final username = AuthStorage.username ?? 'Plant Lover';
+  m.Widget build(m.BuildContext context) {
+    final username = AuthStorage.username ?? 'Người yêu cây';
+    final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SafeArea(
-        child: CustomScrollView(
+    // Dynamic greeting based on time
+    final hour = DateTime.now().hour;
+    final greeting = hour < 12
+        ? 'Chào buổi sáng'
+        : hour < 18
+        ? 'Chào buổi chiều'
+        : 'Chào buổi tối';
+
+    return m.Scaffold(
+      backgroundColor: const m.Color(0xFFFAFAFA),
+      body: m.SafeArea(
+        child: m.CustomScrollView(
           slivers: [
-            // Header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding:
-                    const EdgeInsets.only(left: 24, right: 24, top: 24, bottom: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // Header Section
+            m.SliverPadding(
+              padding: const m.EdgeInsets.fromLTRB(24, 24, 24, 16),
+              sliver: m.SliverToBoxAdapter(
+                child: m.Row(
+                  mainAxisAlignment: m.MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: m.CrossAxisAlignment.center,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Hello, $username 🌿',
-                          style: TextStyle(
-                            color: AppColors.sage500,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          AppStrings.findYourPlant,
-                          style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Notification bell
-                    Stack(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0x0D000000),
-                                blurRadius: 10,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.notifications_outlined,
-                            color: AppColors.textPrimary,
-                            size: 24,
-                          ),
-                        ),
-                        Positioned(
-                          top: 10,
-                          right: 12,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.surface,
-                                width: 1.5,
-                              ),
+                    m.Expanded(
+                      child: m.Column(
+                        crossAxisAlignment: m.CrossAxisAlignment.start,
+                        children: [
+                          m.Text(
+                            '$greeting, $username 🌿',
+                            style: theme.typography.small.copyWith(
+                              color: const m.Color(0xFF166534),
+                              fontWeight: m.FontWeight.w600,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Search bar
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _SearchBarDelegate(),
-            ),
-
-            // Promo Banner
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: PromoBanner(
-                  imageUrl:
-                      'https://lh3.googleusercontent.com/aida-public/AB6AXuA0dIuEygoC1E2px02yXUBCSVXhzNqrd7UFeVFENTvDEAub2nQeKvbc5CJ0JSv0X7ntm1NtmaUBdDVn-qfSCql_HTKqZ2YhbBhl6R9PIi4tHNqjLdP_8s-rYLowGp620xOKS2_OZeEBhPDcLjacQV8SVQFpfy1-HnDwd6j7AbVGdtt6taKiRTMsX_mBnpleurQjscoz6SFnvEjmHo5czFwOiS6qmlbVCaUvoKLJ2hb6EMMN5mpqiBt7J3ckkv800Tw490XAnmqHUOsF',
-                  onTap: () {
-                    if (_products.isNotEmpty) {
-                      context.push('/product/${_products.first.id}');
-                    }
-                  },
-                ),
-              ),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-            // Categories (từ API)
-            SliverToBoxAdapter(
-              child: CategoryChips(
-                categories: _categoryNames,
-                selectedIndex: _selectedCategoryIndex,
-                onSelected: (index) {
-                  setState(() => _selectedCategoryIndex = index);
-                },
-              ),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 28)),
-
-            // "Popular Plants" header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _isLoading
-                          ? AppStrings.popularPlants
-                          : '${AppStrings.popularPlants} (${_filteredProducts.length})',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                          const m.SizedBox(height: 2),
+                          m.Text(
+                            AppStrings.findYourPlant,
+                            style: theme.typography.h2.copyWith(
+                              fontWeight: m.FontWeight.w800,
+                              color: const m.Color(0xFF14532D),
+                            ),
+                            maxLines: 2,
+                            overflow: m.TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        // TODO: Navigate to see all plants
-                      },
-                      child: Text(
-                        AppStrings.seeAll,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.sage500,
-                        ),
+                    const m.SizedBox(width: 16),
+                    m.Container(
+                      decoration: m.BoxDecoration(
+                        color: m.Colors.white,
+                        shape: m.BoxShape.circle,
+                        boxShadow: [
+                          m.BoxShadow(
+                            color: m.Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const m.Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: m.IconButton(
+                        icon: const Icon(LucideIcons.bell, size: 20),
+                        onPressed: () {},
                       ),
                     ),
                   ],
@@ -230,43 +140,185 @@ class _ProductScreenState extends State<ProductScreen> {
               ),
             ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            // Hero Banner Section
+            m.SliverPadding(
+              padding: const m.EdgeInsets.symmetric(horizontal: 24),
+              sliver: m.SliverToBoxAdapter(
+                child: m.Container(
+                  margin: const m.EdgeInsets.only(bottom: 24),
+                  padding: const m.EdgeInsets.all(24),
+                  decoration: m.BoxDecoration(
+                    gradient: const m.LinearGradient(
+                      colors: [m.Color(0xFF16A34A), m.Color(0xFF15803D)],
+                      begin: m.Alignment.topLeft,
+                      end: m.Alignment.bottomRight,
+                    ),
+                    borderRadius: m.BorderRadius.circular(24),
+                    boxShadow: [
+                      m.BoxShadow(
+                        color: const m.Color(0xFF16A34A).withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        offset: const m.Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: m.Row(
+                    children: [
+                      m.Expanded(
+                        flex: 3,
+                        child: m.Column(
+                          crossAxisAlignment: m.CrossAxisAlignment.start,
+                          children: [
+                            m.Text(
+                              'Giảm giá 30%', // "30% off"
+                              style: theme.typography.small.copyWith(
+                                color: m.Colors.white.withValues(alpha: 0.8),
+                                fontWeight: m.FontWeight.w600,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const m.SizedBox(height: 8),
+                            m.Text(
+                              'Khám phá\nbộ sưu tập mới', // "Discover new collection"
+                              style: theme.typography.h3.copyWith(
+                                color: m.Colors.white,
+                                fontWeight: m.FontWeight.bold,
+                                height: 1.2,
+                              ),
+                            ),
+                            const m.SizedBox(height: 16),
+                            OutlineButton(
+                              onPressed: () {},
+                              child: const m.Text('Khám phá ngay'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      m.Expanded(
+                        flex: 2,
+                        child: m.Container(
+                          height: 100,
+                          alignment: m.Alignment.centerRight,
+                          child: const Icon(
+                            LucideIcons.leaf,
+                            size: 80,
+                            color: m.Colors.white24,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
 
-            // Loading indicator or Product Grid
+            // Search Bar
+            m.SliverToBoxAdapter(
+              child: m.Padding(
+                padding: const m.EdgeInsets.symmetric(horizontal: 24),
+                child: m.Container(
+                  decoration: m.BoxDecoration(
+                    boxShadow: [
+                      m.BoxShadow(
+                        color: m.Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 15,
+                        offset: const m.Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    placeholder: m.Text(AppStrings.searchHint),
+                    features: const [
+                      InputLeadingFeature(
+                        Icon(LucideIcons.search, color: m.Color(0xFF16A34A)),
+                      ),
+                      InputTrailingFeature(
+                        Icon(LucideIcons.settings2, color: m.Color(0xFF94A3B8)),
+                      ), // filter icon
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const m.SliverToBoxAdapter(child: m.SizedBox(height: 24)),
+
+            // Categories Chips
+            m.SliverToBoxAdapter(
+              child: m.SingleChildScrollView(
+                scrollDirection: m.Axis.horizontal,
+                padding: const m.EdgeInsets.symmetric(horizontal: 24),
+                child: m.Row(
+                  children: List.generate(_categoryNames.length, (index) {
+                    final isSelected = _selectedCategoryIndex == index;
+                    return m.Padding(
+                      padding: const m.EdgeInsets.only(right: 12),
+                      child: isSelected
+                          ? PrimaryButton(
+                              onPressed: () => setState(
+                                () => _selectedCategoryIndex = index,
+                              ),
+                              child: m.Text(
+                                _categoryNames[index],
+                                style: const m.TextStyle(
+                                  fontWeight: m.FontWeight.w600,
+                                ),
+                              ),
+                            )
+                          : OutlineButton(
+                              onPressed: () => setState(
+                                () => _selectedCategoryIndex = index,
+                              ),
+                              child: m.Text(
+                                _categoryNames[index],
+                                style: const m.TextStyle(
+                                  fontWeight: m.FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                    );
+                  }),
+                ),
+              ),
+            ),
+            const m.SliverToBoxAdapter(child: m.SizedBox(height: 24)),
+
+            // Product Grid or Loading
             if (_isLoading)
-              const SliverToBoxAdapter(
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(40),
-                    child: CircularProgressIndicator(
-                      color: AppColors.primary,
+              const m.SliverToBoxAdapter(
+                child: m.Center(
+                  child: m.Padding(
+                    padding: m.EdgeInsets.all(60),
+                    child: m.CircularProgressIndicator(
+                      color: m.Color(0xFF16A34A),
                     ),
                   ),
                 ),
               )
             else if (_filteredProducts.isEmpty)
-              SliverToBoxAdapter(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(40),
-                    child: Column(
+              m.SliverToBoxAdapter(
+                child: m.Center(
+                  child: m.Padding(
+                    padding: const m.EdgeInsets.all(60),
+                    child: m.Column(
                       children: [
-                        Icon(Icons.local_florist_outlined,
-                            size: 64, color: AppColors.sage400),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Chưa có sản phẩm',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppColors.sage500,
+                        m.Container(
+                          padding: const m.EdgeInsets.all(20),
+                          decoration: m.BoxDecoration(
+                            color: const m.Color(0xFFF1F5F9),
+                            shape: m.BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            LucideIcons.leaf,
+                            size: 48,
+                            color: m.Color(0xFF94A3B8),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Hãy thêm sản phẩm qua API hoặc Swagger UI',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.sage400,
+                        const m.SizedBox(height: 16),
+                        m.Text(
+                          'Chưa có sản phẩm nào',
+                          style: theme.typography.base.copyWith(
+                            color: const m.Color(0xFF64748B),
+                            fontWeight: m.FontWeight.w500,
                           ),
                         ),
                       ],
@@ -275,82 +327,157 @@ class _ProductScreenState extends State<ProductScreen> {
                 ),
               )
             else
-              // Product Grid (2 columns) - từ API
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 20,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: 0.58,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final product = _filteredProducts[index];
-                      final imageUrl = product.imageUrl ??
-                          _plantImages[index % _plantImages.length];
-                      return PlantCard(
-                        name: product.productName,
-                        subtitle: product.categoryName,
-                        imageUrl: imageUrl,
-                        price: product.price,
-                        isFavorite: false,
-                        onTap: () {
-                          context.push('/product/${product.id}');
-                        },
-                        onAddToCart: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  '${product.productName} added to cart!'),
-                              behavior: SnackBarBehavior.floating,
-                              backgroundColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(AppDimens.radiusM),
+              m.SliverPadding(
+                padding: const m.EdgeInsets.symmetric(horizontal: 24),
+                sliver: m.SliverGrid(
+                  gridDelegate:
+                      const m.SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 20,
+                        crossAxisSpacing: 16,
+                        childAspectRatio: 0.72,
+                      ),
+                  delegate: m.SliverChildBuilderDelegate((context, index) {
+                    final product = _filteredProducts[index];
+                    final imageUrl =
+                        product.imageUrl ??
+                        _plantImages[index % _plantImages.length];
+
+                    return m.GestureDetector(
+                      onTap: () => context.push('/product/${product.id}'),
+                      child: m.Container(
+                        decoration: m.BoxDecoration(
+                          color: m.Colors.white,
+                          borderRadius: m.BorderRadius.circular(20),
+                          boxShadow: [
+                            m.BoxShadow(
+                              color: m.Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 20,
+                              offset: const m.Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: m.Column(
+                          crossAxisAlignment: m.CrossAxisAlignment.start,
+                          children: [
+                            m.Expanded(
+                              flex: 5,
+                              child: m.Stack(
+                                children: [
+                                  m.ClipRRect(
+                                    borderRadius: const m.BorderRadius.vertical(
+                                      top: m.Radius.circular(20),
+                                    ),
+                                    child: m.Container(
+                                      width: double.infinity,
+                                      color: const m.Color(0xFFF1F5F9),
+                                      child: m.Image.network(
+                                        imageUrl,
+                                        fit: m.BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  // Favorite Icon Button overlay
+                                  m.Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: m.Container(
+                                      padding: const m.EdgeInsets.all(6),
+                                      decoration: m.BoxDecoration(
+                                        color: m.Colors.white.withValues(
+                                          alpha: 0.9,
+                                        ),
+                                        shape: m.BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        LucideIcons.heart,
+                                        size: 16,
+                                        color: m.Color(0xFF64748B),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          );
-                        },
-                        onFavorite: () {},
-                      );
-                    },
-                    childCount: _filteredProducts.length,
-                  ),
+                            m.Expanded(
+                              flex: 3,
+                              child: m.Padding(
+                                padding: const m.EdgeInsets.all(8),
+                                child: m.Column(
+                                  crossAxisAlignment:
+                                      m.CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      m.MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    m.Column(
+                                      crossAxisAlignment:
+                                          m.CrossAxisAlignment.start,
+                                      children: [
+                                        m.Text(
+                                          product.categoryName,
+                                          style: theme.typography.small
+                                              .copyWith(
+                                                color: const m.Color(
+                                                  0xFF64748B,
+                                                ),
+                                                fontSize: 10,
+                                                fontWeight: m.FontWeight.w600,
+                                                letterSpacing: 0.5,
+                                              ),
+                                        ),
+                                        const m.SizedBox(height: 2),
+                                        m.Text(
+                                          product.productName,
+                                          style: theme.typography.base.copyWith(
+                                            fontSize: 13, fontWeight: m.FontWeight.w700,
+                                            color: const m.Color(0xFF0F172A),
+                                          ),
+                                          maxLines: 1,
+                                          overflow: m.TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                    m.Row(
+                                      mainAxisAlignment:
+                                          m.MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        m.Text(
+                                          '\$${product.price}',
+                                          style: theme.typography.base.copyWith(
+                                            fontSize: 14,
+                                            fontWeight: m.FontWeight.w800,
+                                            color: const m.Color(0xFF16A34A),
+                                          ),
+                                        ),
+                                        m.Container(
+                                          padding: const m.EdgeInsets.all(6),
+                                          decoration: const m.BoxDecoration(
+                                            color: m.Color(0xFF16A34A),
+                                            shape: m.BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            LucideIcons.plus,
+                                            size: 12,
+                                            color: m.Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }, childCount: _filteredProducts.length),
                 ),
               ),
-
-            // Bottom spacing for nav bar
-            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            const m.SliverToBoxAdapter(child: m.SizedBox(height: 100)),
           ],
         ),
       ),
     );
   }
-}
-
-/// Persistent header delegate for the search bar
-class _SearchBarDelegate extends SliverPersistentHeaderDelegate {
-  @override
-  double get minExtent => 72;
-
-  @override
-  double get maxExtent => 72;
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: shrinkOffset > 0
-          ? const Color(0xF2F6F8F6)
-          : AppColors.backgroundLight,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: const PlantSearchBar(),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
-      false;
 }
