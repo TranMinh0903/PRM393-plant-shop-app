@@ -8,10 +8,10 @@
 
 Trước khi chạy project, đảm bảo đã cài đặt:
 
-* Flutter SDK
-* Android Studio / Android Emulator
-* Docker & Docker Compose
-* Git
+- Flutter SDK
+- Android Studio / Android Emulator
+- Docker & Docker Compose
+- Git
 
 Kiểm tra Flutter:
 
@@ -68,7 +68,7 @@ Các bước test nhanh API:
 File cấu hình:
 
 ```
-lib/service/api_config.dart
+lib/services/api_config.dart
 ```
 
 ### Android Emulator
@@ -121,7 +121,7 @@ flutter pub get
 File cấu hình:
 
 ```
-lib/core/config/api_config.dart
+lib/services/api_config.dart
 ```
 
 ```dart
@@ -167,13 +167,12 @@ Sau đó chạy:
 flutter run
 ```
 
-
-#  JWT Authentication
+# JWT Authentication
 
 Token được lưu tại:
 
 ```
-lib/core/services/auth_storage.dart
+lib/services/auth_storage.dart
 ```
 
 Sau khi login:
@@ -182,7 +181,7 @@ Sau khi login:
 AuthStorage.token = 'jwt-token';
 ```
 
-`ApiClient` sẽ tự động attach header:
+`ApiClient` (trong `lib/services/api_client.dart`) sẽ tự động attach header:
 
 ```
 Authorization: Bearer <token>
@@ -194,27 +193,42 @@ Authorization: Bearer <token>
 
 ```
 lib/
-├── main.dart
-├── app.dart
+├── main.dart                    # Entry point của ứng dụng
+├── app.dart                     # App configuration
+├── firebase_options.dart
 │
-├── core/
-│   ├── config/
-│   │   └── api_config.dart
-│   ├── network/
-│   │   └── api_client.dart
-│   ├── routes/
-│   │   └── app_routes.dart
-│   ├── services/
-│   └── theme/
+├── models/                      # Data models
+│   ├── api_response.dart
+│   ├── product.dart
+│   ├── product_create.dart
+│   ├── category.dart
+│   └── category_create.dart
 │
-├── features/
-│   ├── auth/
-│   ├── home/
-│   └── product/
+├── services/                    # API & services
+│   ├── api_client.dart          # HTTP client for API calls
+│   ├── api_config.dart          # API configuration
+│   ├── app_constants.dart       # App constants
+│   ├── app_routes.dart          # Navigation routes
+│   ├── auth_service.dart        # Authentication service
+│   ├── auth_storage.dart        # Token storage
+│   ├── category_service.dart    # Category API service
+│   ├── cloudinary_service.dart  # Image upload service
+│   └── db_helper.dart           # Local database helper
 │
-└── shared/
-    ├── models/
-    └── widgets/
+├── repositories/                # Data repositories (BLoC pattern)
+│
+├── viewmodels/                  # ViewModel layer (Business logic)
+│
+├── views/                       # UI Screens
+│   ├── admin_manage_screen.dart
+│   ├── cart_screen.dart
+│   ├── create_product_screen.dart
+│   ├── login_screen.dart
+│   ├── product_details_screen.dart
+│   ├── product_screen.dart
+│   └── shipper_deliveries_screen.dart
+│
+└── widgets/                     # Reusable UI components
 ```
 
 ---
@@ -225,9 +239,9 @@ lib/
 
 Kiểm tra:
 
-* Backend đang chạy
-* URL đúng (`10.0.2.2`)
-* Port `9090` mở
+- Backend đang chạy
+- URL đúng trong `lib/services/api_config.dart` (`10.0.2.2` cho emulator)
+- Port `9090` mở
 
 Test nhanh:
 
