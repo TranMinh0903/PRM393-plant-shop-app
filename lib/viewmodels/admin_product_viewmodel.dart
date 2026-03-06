@@ -153,11 +153,16 @@ class AdminProductViewModel extends ChangeNotifier {
 
   /// Xóa product
   Future<bool> deleteProduct(int id) async {
+    _productError = null;
+    notifyListeners();
     try {
       final success = await ProductRepo.deleteProduct(id);
 
       if (success) {
-        await loadProducts(); // Reload products list
+        _products.removeWhere((p) => p.id == id);
+        notifyListeners();
+        // Optionale full reload in the background
+        loadProducts();
       } else {
         _productError = 'Xóa sản phẩm thất bại';
       }
@@ -279,10 +284,15 @@ class AdminProductViewModel extends ChangeNotifier {
 
   /// Xóa danh mục
   Future<bool> deleteCategory(int id) async {
+    _productError = null;
+    notifyListeners();
     try {
       final success = await CategoryService.deleteCategory(id);
       if (success) {
-        await loadCategories();
+        _categories.removeWhere((c) => c.id == id);
+        notifyListeners();
+        // Optionale full reload in the background
+        loadCategories();
       } else {
         _productError = 'Xóa danh mục thất bại';
       }

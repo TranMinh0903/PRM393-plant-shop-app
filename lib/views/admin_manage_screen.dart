@@ -161,14 +161,7 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                 ),
               ),
             ),
-            if (viewModel.productError != null)
-              m.Padding(
-                padding: const m.EdgeInsets.symmetric(horizontal: 16),
-                child: Alert(
-                  title: const m.Text('Lỗi'),
-                  content: m.Text(viewModel.productError!),
-                ),
-              ),
+
             m.Expanded(
               child: viewModel.isLoadingProducts
                   ? const m.Center(child: m.CircularProgressIndicator())
@@ -244,6 +237,14 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                   const m.SizedBox(height: 4),
                   m.Text(
                     product.categoryName,
+                    style: theme.typography.small.copyWith(
+                      color: const m.Color(0xFF64748B),
+                      fontWeight: m.FontWeight.w500,
+                    ),
+                  ),
+                  const m.SizedBox(height: 4),
+                  m.Text(
+                    product.stockQuantity.toString(),
                     style: theme.typography.small.copyWith(
                       color: const m.Color(0xFF64748B),
                       fontWeight: m.FontWeight.w500,
@@ -584,9 +585,18 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                   m.Expanded(
                     child: DestructiveButton(
                       onPressed: () async {
-                        await viewModel.deleteProduct(id);
-                        if (context.mounted) {
+                        final success = await viewModel.deleteProduct(id);
+                        if (success && context.mounted) {
                           m.Navigator.of(context).pop();
+                        } else if (!success &&
+                            context.mounted &&
+                            viewModel.productError != null) {
+                          m.ScaffoldMessenger.of(context).showSnackBar(
+                            m.SnackBar(
+                              content: m.Text(viewModel.productError!),
+                              backgroundColor: m.Colors.red,
+                            ),
+                          );
                         }
                       },
                       child: const m.Text('Xóa ngay'),
@@ -632,6 +642,7 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                       itemCount: viewModel.categories.length,
                       itemBuilder: (context, index) {
                         final category = viewModel.categories[index];
+
                         final theme = Theme.of(context);
 
                         return m.Container(
@@ -958,9 +969,18 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                   m.Expanded(
                     child: DestructiveButton(
                       onPressed: () async {
-                        await viewModel.deleteCategory(id);
-                        if (context.mounted) {
+                        final success = await viewModel.deleteCategory(id);
+                        if (success && context.mounted) {
                           m.Navigator.of(context).pop();
+                        } else if (!success &&
+                            context.mounted &&
+                            viewModel.productError != null) {
+                          m.ScaffoldMessenger.of(context).showSnackBar(
+                            m.SnackBar(
+                              content: m.Text(viewModel.productError!),
+                              backgroundColor: m.Colors.red,
+                            ),
+                          );
                         }
                       },
                       child: const m.Text('Xóa ngay'),
