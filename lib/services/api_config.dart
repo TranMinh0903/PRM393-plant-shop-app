@@ -2,13 +2,16 @@
 class ApiConfig {
   ApiConfig._();
 
-  /// Base URL cho Android Emulator (10.0.2.2 = localhost của máy host)
-  static const String baseUrl = 'http://10.0.2.2:9090/api/v1';
+  /// 🌐 Ngrok - dùng cho thuyết trình (ai cũng truy cập được)
+  static const String baseUrl = 'https://horrendously-thiocyano-elana.ngrok-free.dev/api/v1';
 
-  /// Dùng cho thiết bị thật - đổi IP thành IP máy tính của bạn
+  /// 🏠 Docker trên máy mình (Android Emulator)
+  // static const String baseUrl = 'http://10.0.2.2:9090/api/v1';
+
+  /// 📱 Thiết bị thật - đổi IP máy tính
   // static const String baseUrl = 'http://192.168.1.x:9090/api/v1';
 
-  /// Dùng cho Web
+  /// 💻 Web browser
   // static const String baseUrl = 'http://localhost:9090/api/v1';
 }
 
