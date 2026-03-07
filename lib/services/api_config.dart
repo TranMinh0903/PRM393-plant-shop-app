@@ -12,14 +12,3 @@ class ApiConfig {
   /// Dùng cho Web
   // static const String baseUrl = 'http://localhost:9090/api/v1';
 }
-
-/// Cấu hình Cloudinary
-class CloudinaryConfig {
-  CloudinaryConfig._();
-
-  static const String cloudName = 'dndfromwh';
-  static const String uploadPreset = 'itdm5qle';
-  static const String folder = 'treeshop';
-  static const String uploadUrl =
-      'https://api.cloudinary.com/v1_1/$cloudName/image/upload';
-}
