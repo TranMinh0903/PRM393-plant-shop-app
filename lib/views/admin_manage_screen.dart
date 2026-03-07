@@ -226,7 +226,7 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                 crossAxisAlignment: m.CrossAxisAlignment.start,
                 children: [
                   m.Text(
-                    product.productName,
+                    'Tên: ${product.productName}',
                     style: theme.typography.base.copyWith(
                       fontWeight: m.FontWeight.w700,
                       color: const m.Color(0xFF0F172A),
@@ -236,7 +236,7 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                   ),
                   const m.SizedBox(height: 4),
                   m.Text(
-                    product.categoryName,
+                    'Loại: ${product.categoryName}',
                     style: theme.typography.small.copyWith(
                       color: const m.Color(0xFF64748B),
                       fontWeight: m.FontWeight.w500,
@@ -244,7 +244,7 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                   ),
                   const m.SizedBox(height: 4),
                   m.Text(
-                    product.stockQuantity.toString(),
+                    "Tồn kho: ${product.stockQuantity}",
                     style: theme.typography.small.copyWith(
                       color: const m.Color(0xFF64748B),
                       fontWeight: m.FontWeight.w500,
@@ -417,6 +417,23 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                   onChanged: (v) =>
                       viewModel.setStockQuantity(int.tryParse(v) ?? 0),
                 ),
+                const m.SizedBox(height: 12),
+                m.Text(
+                  'LINK ẢNH SẢN PHẨM',
+                  style: Theme.of(context).typography.small.copyWith(
+                    fontWeight: m.FontWeight.w600,
+                    color: const m.Color(0xFF64748B),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const m.SizedBox(height: 8),
+                TextField(
+                  controller: m.TextEditingController(
+                    text: viewModel.editingImageUrl,
+                  ),
+                  placeholder: const m.Text('Nhập link ảnh (URL)...'),
+                  onChanged: (v) => viewModel.setImageUrl(v),
+                ),
                 const m.SizedBox(height: 20),
                 m.Container(
                   padding: const m.EdgeInsets.all(16),
@@ -483,6 +500,7 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                                 stockQuantity:
                                     viewModel.editingStockQuantity ?? 0,
                                 categoryId: viewModel.editingCategoryId ?? 0,
+                                imageUrl: viewModel.editingImageUrl,
                               )
                             : await viewModel.createProduct(
                                 productName: viewModel.editingProductName ?? '',
@@ -490,6 +508,7 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                                 stockQuantity:
                                     viewModel.editingStockQuantity ?? 0,
                                 categoryId: viewModel.editingCategoryId ?? 0,
+                                imageUrl: viewModel.editingImageUrl,
                               );
                         if (success && context.mounted) {
                           m.Navigator.of(context).pop();
