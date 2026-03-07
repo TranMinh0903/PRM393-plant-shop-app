@@ -43,14 +43,14 @@ flutter doctor
 ### Cách 1: Clone từ GitHub
 
 ```bash
-git clone https://github.com/your-organization/PRM393-plant-shop-app.git
+git clone https://github.com/TranMinh0903/PRM393-plant-shop-app.git
 cd PRM393-plant-shop-app
 ```
 
 ### Cách 2: Clone từ GitLab hoặc Repository khác
 
 ```bash
-git clone https://your-git-server/PRM393-plant-shop-app.git
+git clone https://github.com/TranMinh0903/PRM393-plant-shop-app.git
 cd PRM393-plant-shop-app
 ```
 
@@ -90,7 +90,7 @@ flutter pub run build_runner build
 
 ### Bước 3: Cấu hình API Endpoint
 
-File cấu hình API nằm tại: `lib/core/config/api_config.dart`
+File cấu hình API nằm tại: `lib/services/api_config.dart`
 
 **Cho Android Emulator (mặc định):**
 
@@ -114,7 +114,7 @@ static const String baseUrl = 'http://localhost:9090/api/v1';
 
 ### Bước 4: Cấu hình Cloudinary (Nếu cần upload ảnh)
 
-File cấu hình nằm tại: `lib/core/config/api_config.dart`
+File cấu hình nằm tại: `lib/services/api_config.dart`
 
 ```dart
 class CloudinaryConfig {
@@ -181,9 +181,9 @@ Dự án sử dụng `ApiClient` - một wrapper cho `http` package để gọi 
 
 ### Vị trí file API Client
 
-- **API Client:** `lib/core/network/api_client.dart`
-- **API Config:** `lib/core/config/api_config.dart`
-- **Auth Storage:** `lib/core/services/auth_storage.dart`
+- **API Client:** `lib/services/api_client.dart`
+- **API Config:** `lib/services/api_config.dart`
+- **Auth Storage:** `lib/services/auth_storage.dart`
 
 ### Tính năng của ApiClient
 
@@ -198,7 +198,7 @@ Dự án sử dụng `ApiClient` - một wrapper cho `http` package để gọi 
 #### 1. **GET Request** - Lấy danh sách cây cảnh
 
 ```dart
-import 'package:plant_shop_app/core/network/api_client.dart';
+import 'package:plant_shop_app/services/api_client.dart';
 
 // Lấy danh sách sản phẩm
 final response = await ApiClient.get('/products');
@@ -292,7 +292,7 @@ AuthStorage.token = 'eyJhbGciOiJIUzI1NiIs...';
 AuthStorage.token = null;
 ```
 
-**File liên quan:** `lib/core/services/auth_storage.dart`
+**File liên quan:** `lib/services/auth_storage.dart`
 
 ### Sử dụng ApiClient trong BLoC
 
@@ -300,7 +300,7 @@ Dự án sử dụng **BLoC Pattern** để quản lý state. Dưới đây là 
 
 ```dart
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:plant_shop_app/core/network/api_client.dart';
+import 'package:plant_shop_app/services/api_client.dart';
 import 'dart:convert';
 
 // Events
@@ -358,7 +358,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
 ```dart
 import 'dart:convert';
-import 'package:plant_shop_app/core/network/api_client.dart';
+import 'package:plant_shop_app/services/api_client.dart';
 
 // Helper để handle response một cách dễ dàng
 Future<T?> apiCall<T>({
@@ -397,38 +397,46 @@ final product = await apiCall<Product>(
 
 ```
 lib/
-├── main.dart                 # Entry point của ứng dụng
-├── app.dart                  # Root widget
-├── core/                     # Core functionality
-│   ├── config/
-│   │   └── api_config.dart   # Cấu hình API & Cloudinary
-│   ├── constants/            # Constants & enums
-│   ├── network/
-│   │   ├── api_client.dart   # HTTP client wrapper
-│   │   └── auth_storage.dart # JWT Token storage
-│   ├── routes/
-│   │   └── app_routes.dart   # Navigation routes (go_router)
-│   ├── services/             # Business logic services
-│   ├── theme/
-│   │   └── app_theme.dart    # Material theme
-│   └── dependency_injection/ # GetIt & Injectable setup
-├── features/                 # Feature modules (BLoC architecture)
-│   ├── auth/                 # Authentication feature
-│   │   ├── bloc/
-│   │   ├── pages/
-│   │   ├── widgets/
-│   │   └── models/
-│   ├── home/                 # Home screen
-│   │   ├── bloc/
-│   │   ├── pages/
-│   │   └── widgets/
-│   └── product/              # Product management
-│       ├── bloc/
-│       ├── pages/
-│       ├── widgets/
-│       └── models/
-└── shared/                   # Shared utilities
-    ├── models/               # Common data models
-    └── widgets/              # Reusable widgets
+├── main.dart                          # Entry point của ứng dụng
+├── app.dart                           # Root widget (ShadcnApp + Provider)
+│
+├── models/                            # Data models
+│   ├── api_response.dart              # API response wrapper
+│   ├── product.dart                   # Product model
+│   ├── product_create.dart            # Product create DTO
+│   ├── category.dart                  # Category model
+│   └── category_create.dart           # Category create DTO
+│
+├── services/                          # API & services
+│   ├── api_client.dart                # HTTP client wrapper
+│   ├── api_config.dart                # API URL configuration
+│   ├── app_constants.dart             # App constants
+│   ├── app_routes.dart                # Navigation routes (go_router)
+│   ├── auth_service.dart              # Login / Register / Logout
+│   ├── auth_storage.dart              # JWT Token storage
+│   ├── category_service.dart          # Category API service
+│   └── db_helper.dart                 # Local database helper
+│
+├── repositories/                      # Data repositories
+│   └── product_repo.dart              # Product API repository
+│
+├── viewmodels/                        # ViewModel layer (ChangeNotifier)
+│   ├── admin_product_viewmodel.dart   # Admin product management
+│   ├── product_create_state.dart      # Create product state
+│   ├── product_create_viewmodel.dart  # Create product logic
+│   ├── product_list_state.dart        # Product list state
+│   └── product_list_viewmodel.dart    # Product list logic
+│
+├── views/                             # UI Screens
+│   ├── admin_manage_screen.dart       # Admin management
+│   ├── cart_screen.dart               # Shopping cart
+│   ├── create_product_screen.dart     # Create product form
+│   ├── login_screen.dart              # Login / Register
+│   ├── product_details_screen.dart    # Product details
+│   ├── product_screen.dart            # Product listing
+│   └── shipper_deliveries_screen.dart # Shipper deliveries
+│
+└── widgets/                           # Reusable UI components
+    └── main_shell.dart                # Main navigation shell
 ```
 
