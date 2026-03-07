@@ -1,5 +1,5 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+
 import 'package:provider/provider.dart';
 
 import 'services/app_routes.dart';
@@ -21,13 +21,6 @@ class App extends StatelessWidget {
         theme: ThemeData(colorScheme: ColorSchemes.lightSlate, radius: 0.5),
         darkTheme: ThemeData(colorScheme: ColorSchemes.darkSlate, radius: 0.5),
         themeMode: ThemeMode.light,
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('vi', 'VN')],
-        locale: const Locale('vi', 'VN'),
       ),
     );
   }

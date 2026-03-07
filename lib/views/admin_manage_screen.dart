@@ -161,14 +161,7 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                 ),
               ),
             ),
-            if (viewModel.productError != null)
-              m.Padding(
-                padding: const m.EdgeInsets.symmetric(horizontal: 16),
-                child: Alert(
-                  title: const m.Text('Lỗi'),
-                  content: m.Text(viewModel.productError!),
-                ),
-              ),
+
             m.Expanded(
               child: viewModel.isLoadingProducts
                   ? const m.Center(child: m.CircularProgressIndicator())
@@ -233,7 +226,7 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                 crossAxisAlignment: m.CrossAxisAlignment.start,
                 children: [
                   m.Text(
-                    product.productName,
+                    'Tên: ${product.productName}',
                     style: theme.typography.base.copyWith(
                       fontWeight: m.FontWeight.w700,
                       color: const m.Color(0xFF0F172A),
@@ -243,7 +236,15 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                   ),
                   const m.SizedBox(height: 4),
                   m.Text(
-                    product.categoryName,
+                    'Loại: ${product.categoryName}',
+                    style: theme.typography.small.copyWith(
+                      color: const m.Color(0xFF64748B),
+                      fontWeight: m.FontWeight.w500,
+                    ),
+                  ),
+                  const m.SizedBox(height: 4),
+                  m.Text(
+                    "Tồn kho: ${product.stockQuantity}",
                     style: theme.typography.small.copyWith(
                       color: const m.Color(0xFF64748B),
                       fontWeight: m.FontWeight.w500,
@@ -416,6 +417,23 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                   onChanged: (v) =>
                       viewModel.setStockQuantity(int.tryParse(v) ?? 0),
                 ),
+                const m.SizedBox(height: 12),
+                m.Text(
+                  'LINK ẢNH SẢN PHẨM',
+                  style: Theme.of(context).typography.small.copyWith(
+                    fontWeight: m.FontWeight.w600,
+                    color: const m.Color(0xFF64748B),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const m.SizedBox(height: 8),
+                TextField(
+                  controller: m.TextEditingController(
+                    text: viewModel.editingImageUrl,
+                  ),
+                  placeholder: const m.Text('Nhập link ảnh (URL)...'),
+                  onChanged: (v) => viewModel.setImageUrl(v),
+                ),
                 const m.SizedBox(height: 20),
                 m.Container(
                   padding: const m.EdgeInsets.all(16),
@@ -482,6 +500,7 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                                 stockQuantity:
                                     viewModel.editingStockQuantity ?? 0,
                                 categoryId: viewModel.editingCategoryId ?? 0,
+                                imageUrl: viewModel.editingImageUrl,
                               )
                             : await viewModel.createProduct(
                                 productName: viewModel.editingProductName ?? '',
@@ -489,6 +508,7 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                                 stockQuantity:
                                     viewModel.editingStockQuantity ?? 0,
                                 categoryId: viewModel.editingCategoryId ?? 0,
+                                imageUrl: viewModel.editingImageUrl,
                               );
                         if (success && context.mounted) {
                           m.Navigator.of(context).pop();
@@ -584,9 +604,18 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                   m.Expanded(
                     child: DestructiveButton(
                       onPressed: () async {
-                        await viewModel.deleteProduct(id);
-                        if (context.mounted) {
+                        final success = await viewModel.deleteProduct(id);
+                        if (success && context.mounted) {
                           m.Navigator.of(context).pop();
+                        } else if (!success &&
+                            context.mounted &&
+                            viewModel.productError != null) {
+                          m.ScaffoldMessenger.of(context).showSnackBar(
+                            m.SnackBar(
+                              content: m.Text(viewModel.productError!),
+                              backgroundColor: m.Colors.red,
+                            ),
+                          );
                         }
                       },
                       child: const m.Text('Xóa ngay'),
@@ -632,6 +661,7 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                       itemCount: viewModel.categories.length,
                       itemBuilder: (context, index) {
                         final category = viewModel.categories[index];
+
                         final theme = Theme.of(context);
 
                         return m.Container(
@@ -958,9 +988,18 @@ class _AdminManageScreenState extends m.State<AdminManageScreen> {
                   m.Expanded(
                     child: DestructiveButton(
                       onPressed: () async {
-                        await viewModel.deleteCategory(id);
-                        if (context.mounted) {
+                        final success = await viewModel.deleteCategory(id);
+                        if (success && context.mounted) {
                           m.Navigator.of(context).pop();
+                        } else if (!success &&
+                            context.mounted &&
+                            viewModel.productError != null) {
+                          m.ScaffoldMessenger.of(context).showSnackBar(
+                            m.SnackBar(
+                              content: m.Text(viewModel.productError!),
+                              backgroundColor: m.Colors.red,
+                            ),
+                          );
                         }
                       },
                       child: const m.Text('Xóa ngay'),

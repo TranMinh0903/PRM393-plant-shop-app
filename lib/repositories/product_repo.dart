@@ -26,7 +26,10 @@ class ProductRepo {
       if (minPrice != null) queryParams['minPrice'] = minPrice.toString();
       if (maxPrice != null) queryParams['maxPrice'] = maxPrice.toString();
 
-      final response = await ApiClient.get('/products', queryParams: queryParams);
+      final response = await ApiClient.get(
+        '/products',
+        queryParams: queryParams,
+      );
       final body = jsonDecode(response.body);
 
       if (response.statusCode == 200 && body['isSuccess'] == true) {
@@ -86,10 +89,16 @@ class ProductRepo {
   static Future<bool> deleteProduct(int id) async {
     try {
       final response = await ApiClient.delete('/products/$id');
-      final body = jsonDecode(response.body);
-      return response.statusCode >= 200 &&
-          response.statusCode < 300 &&
-          body['isSuccess'] == true;
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        if (response.body.isEmpty) return true;
+        try {
+          final body = jsonDecode(response.body);
+          return body['isSuccess'] == true;
+        } catch (_) {
+          return true; // Status code is success, ignore body decode error
+        }
+      }
+      return false;
     } catch (e) {
       return false;
     }
