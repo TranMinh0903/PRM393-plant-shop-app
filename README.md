@@ -440,3 +440,238 @@ lib/
     └── main_shell.dart                # Main navigation shell
 ```
 
+---
+
+## EF Core - Kết nối Database (Backend)
+
+Backend sử dụng **Entity Framework Core** với **SQL Server** để quản lý database.
+
+### Cấu trúc Database (5 bảng chính)
+
+| Bảng | Mô tả |
+|------|-------|
+| `Account` | Tài khoản người dùng (User/Admin/Shipper) |
+| `Category` | Danh mục cây cảnh |
+| `Product` | Sản phẩm cây cảnh |
+| `Order` | Đơn hàng |
+| `OrderDetail` | Chi tiết đơn hàng |
+
+### DbContext - Khai báo kết nối
+
+File: `PRN232.TreeShop.Repo/Entities/ShopDBContext.cs`
+
+```csharp
+public partial class ShopDBContext : DbContext
+{
+    public ShopDBContext(DbContextOptions<ShopDBContext> options)
+        : base(options) { }
+
+    public virtual DbSet<Account> Accounts { get; set; }
+    public virtual DbSet<Category> Categories { get; set; }
+    public virtual DbSet<Product> Products { get; set; }
+    public virtual DbSet<Order> Orders { get; set; }
+    public virtual DbSet<OrderDetail> OrderDetails { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // Fluent API configuration cho từng Entity
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.ToTable("Product");
+            entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ProductName).HasMaxLength(200);
+
+            // Foreign Key - Product thuộc Category
+            entity.HasOne(d => d.Category)
+                .WithMany(p => p.Products)
+                .HasForeignKey(d => d.CategoryId);
+        });
+    }
+}
+```
+
+### Connection String
+
+File: `appsettings.json`
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=sqlserver,1433;Database=ShopDB;User Id=sa;Password=TreeShop@123;TrustServerCertificate=True;Encrypt=False;"
+  }
+}
+```
+
+### Đăng ký EF Core trong Program.cs
+
+```csharp
+// Kết nối SQL Server qua EF Core
+builder.Services.AddDbContext<ShopDBContext>(option =>
+    option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Dependency Injection - Repository & Service
+builder.Services.AddScoped<UnitOfWork>();
+builder.Services.AddScoped<ProductRepo>();
+builder.Services.AddScoped<CategoryRepo>();
+builder.Services.AddScoped<OrderRepo>();
+builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<OrderService>();
+```
+
+### Tài khoản mặc định (Seed Data)
+
+Backend tự động tạo tài khoản mặc định khi khởi chạy:
+
+| Username | Password | Role |
+|----------|----------|------|
+| `admin` | `admin123` | Admin |
+| `shipper` | `shipper123` | Shipper |
+
+---
+
+## SQLite - Lưu dữ liệu Local (Flutter)
+
+Ứng dụng hỗ trợ **SQLite** để lưu cache dữ liệu offline trên thiết bị.
+
+### Bước 1: Cài đặt dependency
+
+Thêm vào `pubspec.yaml`:
+
+```yaml
+dependencies:
+  sqflite: ^2.3.0       # SQLite cho Flutter
+  path: ^1.8.0          # Xử lý đường dẫn file
+```
+
+Sau đó chạy:
+
+```bash
+flutter pub get
+```
+
+### Bước 2: Cấu hình quyền truy cập
+
+**Android** (`android/app/src/main/AndroidManifest.xml`):
+
+SQLite **không cần cấu hình thêm** vì dữ liệu được lưu trong sandbox app (không cần quyền storage).
+
+**iOS**: Cũng không cần cấu hình thêm.
+
+### Bước 3: Tạo Database Helper
+
+Tạo file `lib/services/db_helper.dart` để quản lý kết nối SQLite:
+
+```dart
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+
+// Bước khởi tạo database
+final db = await openDatabase(
+  join(await getDatabasesPath(), 'plant_shop.db'),  // Đường dẫn file DB
+  version: 1,                                        // Version để quản lý migration
+  onCreate: (db, version) {
+    // Tạo bảng khi lần đầu mở DB
+    return db.execute('CREATE TABLE ...');
+  },
+);
+```
+
+> 💡 `getDatabasesPath()` trả về đường dẫn mặc định:
+> - **Android**: `/data/data/<package>/databases/`
+> - **iOS**: `Documents/`
+
+### Bước 4: Tạo bảng và thao tác CRUD
+
+### File: `lib/services/db_helper.dart`
+
+```dart
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+
+class DbHelper {
+  DbHelper._();
+
+  static Database? _database;
+
+  /// Mở hoặc tạo database
+  static Future<Database> get database async {
+    if (_database != null) return _database!;
+
+    _database = await openDatabase(
+      join(await getDatabasesPath(), 'plant_shop.db'),
+      version: 1,
+      onCreate: (db, version) async {
+        // Tạo bảng cache sản phẩm
+        await db.execute('''
+          CREATE TABLE cached_products (
+            id INTEGER PRIMARY KEY,
+            productName TEXT NOT NULL,
+            price REAL,
+            imageUrl TEXT,
+            categoryId INTEGER
+          )
+        ''');
+
+        // Tạo bảng giỏ hàng local
+        await db.execute('''
+          CREATE TABLE cart_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            productId INTEGER NOT NULL,
+            productName TEXT NOT NULL,
+            price REAL NOT NULL,
+            quantity INTEGER DEFAULT 1,
+            imageUrl TEXT
+          )
+        ''');
+      },
+    );
+
+    return _database!;
+  }
+
+  /// Lưu cache sản phẩm (khi offline)
+  static Future<void> cacheProducts(List<Map<String, dynamic>> products) async {
+    final db = await database;
+    await db.delete('cached_products');
+    for (final product in products) {
+      await db.insert('cached_products', product);
+    }
+  }
+
+  /// Lấy sản phẩm từ cache
+  static Future<List<Map<String, dynamic>>> getCachedProducts() async {
+    final db = await database;
+    return db.query('cached_products');
+  }
+
+  /// Thêm sản phẩm vào giỏ hàng local
+  static Future<void> addToCart(Map<String, dynamic> item) async {
+    final db = await database;
+    await db.insert('cart_items', item);
+  }
+
+  /// Lấy giỏ hàng local
+  static Future<List<Map<String, dynamic>>> getCartItems() async {
+    final db = await database;
+    return db.query('cart_items');
+  }
+
+  /// Xóa giỏ hàng
+  static Future<void> clearCart() async {
+    final db = await database;
+    await db.delete('cart_items');
+  }
+}
+```
+
+### Dependency cần thiết (`pubspec.yaml`)
+
+```yaml
+dependencies:
+  sqflite: ^2.3.0
+  path: ^1.8.0
+```
+
+> 💡 **Lưu ý:** SQLite dùng để lưu dữ liệu **offline/local** (cache, giỏ hàng). Dữ liệu chính vẫn lưu trên **SQL Server** thông qua API.
+```
